@@ -11,14 +11,49 @@ interface OrdersTableProps {
   showAllColumns?: boolean
 }
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const FILTER_OPTIONS = ['all', 'new', 'cooking', 'ready', 'delivered', 'failed']
+
 export default function OrdersTable({ orders, onStatusChange, showAllColumns = false }: OrdersTableProps) {
   const [updating, setUpdating] = useState<string | null>(null)
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
 
   const handleStatus = async (id: string, status: string) => {
     if (!onStatusChange) return
     setUpdating(id)
     await onStatusChange(id, status)
     setUpdating(null)
+  }
+
+  const filtered = filterStatus === 'all'
+    ? orders
+    : orders.filter(o => o.status === filterStatus)
+
+  // Build a CSV from the currently visible (filtered) orders and download it.
+  const exportCSV = () => {
+    const headers = ['Order ID', 'Created', 'Customer', 'Phone', 'Type', 'Items', 'Total', 'Status']
+    const rows = filtered.map(o => [
+      shortId(o.id),
+      o.created_at,
+      o.customer_name ?? '',
+      o.customer_phone ?? '',
+      o.order_type ?? '',
+      formatItems(o.items),
+      parseTotal(o.total).toFixed(2),
+      o.status,
+    ])
+    const esc = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
+    const csv = [headers, ...rows].map(r => r.map(esc).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `voxa-orders-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -28,12 +63,51 @@ export default function OrdersTable({ orders, onStatusChange, showAllColumns = f
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>Live Order Feed</h2>
           <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
-            Real-time orders from Voxa AI · {orders.length} total
+            Real-time orders from Voxa AI · {filterStatus === 'all'
+              ? `${orders.length} total`
+              : `${filtered.length} ${cap(filterStatus)} · ${orders.length} total`}
           </p>
         </div>
         <div className="flex gap-2">
-          <TblBtn icon={<Download size={14} />}>Export CSV</TblBtn>
-          <TblBtn icon={<SlidersHorizontal size={14} />}>Filter</TblBtn>
+          <TblBtn icon={<Download size={14} />} onClick={exportCSV}>Export CSV</TblBtn>
+
+          {/* Filter dropdown */}
+          <div className="relative">
+            <TblBtn
+              icon={<SlidersHorizontal size={14} />}
+              active={filterStatus !== 'all'}
+              onClick={() => setFilterOpen(v => !v)}
+            >
+              {filterStatus === 'all' ? 'Filter' : cap(filterStatus)}
+            </TblBtn>
+            {filterOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setFilterOpen(false)} />
+                <div
+                  className="absolute right-0 mt-1.5 z-50 rounded-lg overflow-hidden py-1"
+                  style={{ background: 'var(--bg3)', border: '1px solid var(--border)', minWidth: 150, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+                >
+                  {FILTER_OPTIONS.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => { setFilterStatus(s); setFilterOpen(false) }}
+                      className="block w-full text-left px-3 py-2 text-xs transition-colors"
+                      style={{
+                        color: filterStatus === s ? 'var(--blue2)' : 'var(--text2)',
+                        background: filterStatus === s ? 'var(--surface2)' : 'transparent',
+                        fontWeight: filterStatus === s ? 600 : 400,
+                      }}
+                      onMouseEnter={e => { if (filterStatus !== s) (e.currentTarget as HTMLElement).style.background = 'var(--surface)' }}
+                      onMouseLeave={e => { if (filterStatus !== s) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                    >
+                      {s === 'all' ? 'All orders' : cap(s)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
           <TblBtn primary icon={<Plus size={14} />}>New Order</TblBtn>
         </div>
       </div>
@@ -43,37 +117,43 @@ export default function OrdersTable({ orders, onStatusChange, showAllColumns = f
         className="overflow-hidden rounded-2xl"
         style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
-        {/* Head */}
-        <div
-          className="grid px-5 py-3"
-          style={{
-            gridTemplateColumns: '110px 1fr 180px 130px 110px 100px 90px',
-            background: 'rgba(255,255,255,0.02)',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          {['Order ID', 'Customer & Address', 'Items', 'Status', 'Type', 'Value', 'Time'].map(h => (
-            <div key={h} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text3)' }}>
-              {h}
-            </div>
-          ))}
-        </div>
-
-        {/* Rows */}
-        {orders.length === 0 ? (
-          <div className="flex items-center justify-center py-16" style={{ color: 'var(--text3)', fontSize: 14 }}>
-            No orders yet. Waiting for Voxa AI…
+        {/* Scroll area (header sticky inside) */}
+        <div style={{ maxHeight: 520, overflowY: 'auto' }}>
+          {/* Head */}
+          <div
+            className="grid px-5 py-3"
+            style={{
+              gridTemplateColumns: '110px 1fr 180px 130px 110px 100px 90px',
+              background: '#0a0e1a',
+              borderBottom: '1px solid var(--border)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 5,
+            }}
+          >
+            {['Order ID', 'Customer & Address', 'Items', 'Status', 'Type', 'Value', 'Time'].map(h => (
+              <div key={h} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text3)' }}>
+                {h}
+              </div>
+            ))}
           </div>
-        ) : (
-          orders.map(order => (
-            <OrderRow
-              key={order.id}
-              order={order}
-              loading={updating === order.id}
-              onStatusChange={handleStatus}
-            />
-          ))
-        )}
+
+          {/* Rows */}
+          {filtered.length === 0 ? (
+            <div className="flex items-center justify-center py-16" style={{ color: 'var(--text3)', fontSize: 14 }}>
+              {orders.length === 0 ? 'No orders yet. Waiting for Voxa AI…' : `No ${cap(filterStatus)} orders.`}
+            </div>
+          ) : (
+            filtered.map(order => (
+              <OrderRow
+                key={order.id}
+                order={order}
+                loading={updating === order.id}
+                onStatusChange={handleStatus}
+              />
+            ))
+          )}
+        </div>
       </div>
     </section>
   )
@@ -251,19 +331,24 @@ function OrderRow({
 }
 
 function TblBtn({
-  children, icon, primary,
+  children, icon, primary, active, onClick,
 }: {
   children: React.ReactNode
   icon?: React.ReactNode
   primary?: boolean
+  active?: boolean
+  onClick?: () => void
 }) {
+  const baseBg = active ? 'rgba(45,124,246,0.12)' : 'var(--surface)'
+  const baseColor = active ? 'var(--blue2)' : 'var(--text2)'
   return (
     <button
+      onClick={onClick}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
       style={{
-        background: primary ? 'var(--blue)' : 'var(--surface)',
-        color: primary ? '#fff' : 'var(--text2)',
-        border: `1px solid ${primary ? 'var(--blue)' : 'var(--border)'}`,
+        background: primary ? 'var(--blue)' : baseBg,
+        color: primary ? '#fff' : baseColor,
+        border: `1px solid ${primary ? 'var(--blue)' : active ? 'rgba(45,124,246,0.3)' : 'var(--border)'}`,
         cursor: 'pointer',
         fontFamily: 'inherit',
       }}
@@ -275,8 +360,8 @@ function TblBtn({
       }}
       onMouseLeave={e => {
         if (!primary) {
-          ;(e.currentTarget as HTMLElement).style.background = 'var(--surface)'
-          ;(e.currentTarget as HTMLElement).style.color = 'var(--text2)'
+          ;(e.currentTarget as HTMLElement).style.background = baseBg
+          ;(e.currentTarget as HTMLElement).style.color = baseColor
         }
       }}
     >

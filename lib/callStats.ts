@@ -13,10 +13,15 @@ const MISSED_REASONS = new Set([
   'assistant-did-not-receive-customer-audio',
 ])
 
-// A call is "live" if it hasn't ended yet. We key off ended_at (reliable) rather
-// than the status string, which n8n may leave at an early value like "queued".
-function isLive(c: CallLog): boolean {
-  return !c.ended_at
+// A call is "live" only if it has no end time AND started recently. Some rows
+// never get an ended_at written (n8n drops the end event), so without a recency
+// guard old calls would show as "on call now" forever. 15 min covers any real call.
+function isLive(c: CallLog, nowMs: number): boolean {
+  if (c.ended_at) return false
+  const t = c.started_at ?? c.created_at
+  if (!t) return false
+  const ageMin = (nowMs - new Date(t).getTime()) / 60000
+  return ageMin >= 0 && ageMin <= 15
 }
 
 function durationSec(c: CallLog): number {
@@ -28,9 +33,9 @@ function durationSec(c: CallLog): number {
   return 0
 }
 
-function isAnswered(c: CallLog): boolean {
+function isAnswered(c: CallLog, nowMs: number): boolean {
   if (c.ended_reason && MISSED_REASONS.has(c.ended_reason)) return false
-  if (isLive(c)) return true // a connected, in-progress call counts as answered
+  if (isLive(c, nowMs)) return true // a connected, in-progress call counts as answered
   return durationSec(c) >= 5
 }
 
@@ -55,10 +60,10 @@ function dayLabel(d: Date): string {
   return new Intl.DateTimeFormat('en-US', { timeZone: BUSINESS_TZ, weekday: 'short' }).format(d)
 }
 
-function toSummary(c: CallLog): CallSummary {
+function toSummary(c: CallLog, nowMs: number): CallSummary {
   return {
     id: c.vapi_call_id || c.id,
-    status: isLive(c) ? (c.status ?? 'in-progress') : 'ended',
+    status: isLive(c, nowMs) ? (c.status ?? 'in-progress') : 'ended',
     endedReason: c.ended_reason,
     type: c.type,
     startedAt: c.started_at,
@@ -66,13 +71,14 @@ function toSummary(c: CallLog): CallSummary {
     durationSec: durationSec(c),
     cost: typeof c.cost === 'number' ? c.cost : 0,
     customerMasked: maskNumber(c.customer_number),
-    answered: isAnswered(c),
+    answered: isAnswered(c, nowMs),
   }
 }
 
 // Build the dashboard's CallStats from raw call_logs rows.
 export function computeCallStats(logs: CallLog[], now: Date = new Date()): CallStats {
   const todayKey = dayKey(now)
+  const nowMs = now.getTime()
 
   const buckets: { day: string; key: string; calls: number }[] = []
   for (let i = 6; i >= 0; i--) {
@@ -86,8 +92,8 @@ export function computeCallStats(logs: CallLog[], now: Date = new Date()): CallS
   for (const c of logs) {
     if (c.type === 'inboundPhoneCall' || c.type === 'outboundPhoneCall') inboundCalls++
     if (c.type === 'webCall') webCalls++
-    if (isLive(c)) activeCalls++
-    if (isAnswered(c)) answeredCalls++
+    if (isLive(c, nowMs)) activeCalls++
+    if (isAnswered(c, nowMs)) answeredCalls++
     totalCost += typeof c.cost === 'number' ? c.cost : 0
 
     const dur = durationSec(c)
@@ -119,8 +125,8 @@ export function computeCallStats(logs: CallLog[], now: Date = new Date()): CallS
     recent: logs
       .slice()
       .sort((a, b) => new Date(callTime(b)).getTime() - new Date(callTime(a)).getTime())
-      .slice(0, 8)
-      .map(toSummary),
+      .slice(0, 5)
+      .map(c => toSummary(c, nowMs)),
     source: 'assistant',
     fetchedAt: now.toISOString(),
   }

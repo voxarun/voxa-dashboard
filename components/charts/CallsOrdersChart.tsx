@@ -37,7 +37,7 @@ export default function CallsOrdersChart({ data }: CallsOrdersChartProps) {
 
   return (
     <div
-      className="rounded-2xl"
+      className="rounded-2xl h-full"
       style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '22px 24px' }}
     >
       <div className="flex items-center justify-between mb-5">

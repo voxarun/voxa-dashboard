@@ -38,7 +38,7 @@ export default function DriverView({ orders, onMarkDelivered, compact = false }:
       </div>
 
       {/* Jobs */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5" style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
         {activeDeliveries.length === 0 ? (
           <div
             className="flex items-center justify-center py-8 rounded-xl"

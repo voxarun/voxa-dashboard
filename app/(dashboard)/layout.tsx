@@ -2,7 +2,7 @@ import Sidebar from '@/components/ui/Sidebar'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--bg)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* Ambient background */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -18,7 +18,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <Sidebar />
 
-      <main className="flex-1 relative z-10" style={{ marginLeft: 240 }}>
+      <main
+        className="relative z-10"
+        style={{ marginLeft: 240, minHeight: '100vh', overflowX: 'hidden' }}
+      >
         {children}
       </main>
     </div>

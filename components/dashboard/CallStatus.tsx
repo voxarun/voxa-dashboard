@@ -2,7 +2,13 @@
 
 import { Phone, PhoneCall, PhoneMissed, Clock } from 'lucide-react'
 import type { CallStats, CallSummary } from '@/types'
-import { relativeTime } from '@/lib/utils'
+
+// Exact clock time (UK) for a call — varies per row, reads as a real live feed.
+function fmtTime(iso: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit',
+  }).format(new Date(iso))
+}
 
 interface CallStatusProps {
   stats: CallStats | null
@@ -37,15 +43,13 @@ export default function CallStatus({ stats, loading, error }: CallStatusProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>📞 Call Status — Voxa Voice Agent</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>📞 Live Call Feed</h3>
           <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
             {error
               ? 'Could not load call data'
               : loading && !stats
               ? 'Connecting to VAPI…'
-              : stats
-              ? `Live from VAPI · ${stats.source === 'assistant' ? 'this assistant' : 'all assistants'}`
-              : '—'}
+              : 'Real-time activity'}
           </p>
         </div>
         {stats && stats.activeCalls > 0 ? (
@@ -97,7 +101,7 @@ export default function CallStatus({ stats, loading, error }: CallStatusProps) {
                 {loading ? 'Loading calls…' : 'No calls yet'}
               </div>
             ) : (
-              stats.recent.map(c => {
+              stats.recent.slice(0, 5).map(c => {
                 const chip = statusChip(c)
                 const when = c.startedAt ?? c.endedAt
                 return (
@@ -121,8 +125,8 @@ export default function CallStatus({ stats, loading, error }: CallStatusProps) {
                     <span style={{ fontSize: 11, color: 'var(--text2)', flexShrink: 0 }}>
                       {fmtDuration(c.durationSec)}
                     </span>
-                    <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0, width: 64, textAlign: 'right' }}>
-                      {when ? relativeTime(when) : '—'}
+                    <span style={{ fontFamily: 'var(--font-jetbrains)', fontSize: 11, color: 'var(--text3)', flexShrink: 0, width: 52, textAlign: 'right' }}>
+                      {when ? fmtTime(when) : '—'}
                     </span>
                   </div>
                 )

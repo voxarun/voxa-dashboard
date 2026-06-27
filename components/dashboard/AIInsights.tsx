@@ -20,7 +20,7 @@ export default function AIInsights({ kpis }: AIInsightsProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5" style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
         {insights.map((insight, i) => (
           <div
             key={i}

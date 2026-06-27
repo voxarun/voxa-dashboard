@@ -1,7 +1,9 @@
 'use client'
 
+import type { LucideIcon } from 'lucide-react'
+
 interface KpiCardProps {
-  icon: string
+  Icon: LucideIcon
   label: string
   value: string | number
   sub?: string
@@ -20,7 +22,7 @@ const ACCENT_MAP = {
 }
 
 export default function KpiCard({
-  icon, label, value, sub, change, changeUp, accent = 'blue',
+  Icon, label, value, sub, change, changeUp, accent = 'blue',
 }: KpiCardProps) {
   const a = ACCENT_MAP[accent]
 
@@ -55,10 +57,10 @@ export default function KpiCard({
       {/* Header row */}
       <div className="flex items-center justify-between mb-3">
         <div
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center text-lg"
+          className="w-9 h-9 rounded-[10px] flex items-center justify-center"
           style={{ background: a.icon, border: `1px solid ${a.iconBorder}` }}
         >
-          {icon}
+          <Icon size={18} strokeWidth={2} style={{ color: a.bar }} />
         </div>
         {change && (
           <span

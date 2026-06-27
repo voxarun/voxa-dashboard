@@ -1,6 +1,10 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import {
+  ShoppingBag, CheckCircle2, Flame, PoundSterling,
+  Truck, Store, XCircle, CalendarDays,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { computeKpis, buildDailyChartData, formatGBP } from '@/lib/utils'
 import { useCallLogs } from '@/lib/useCallLogs'
@@ -12,8 +16,9 @@ import OrdersTable from '@/components/dashboard/OrdersTable'
 import ChefView    from '@/components/dashboard/ChefView'
 import DriverView  from '@/components/dashboard/DriverView'
 import AIInsights  from '@/components/dashboard/AIInsights'
-import AgentStatus from '@/components/dashboard/AgentStatus'
+// import AIAgents    from '@/components/dashboard/AIAgents'  // section commented out
 import CallStatus  from '@/components/dashboard/CallStatus'
+import LiveTicker  from '@/components/dashboard/LiveTicker'
 import CallsOrdersChart from '@/components/charts/CallsOrdersChart'
 import OrderDonutChart  from '@/components/charts/OrderDonutChart'
 
@@ -69,6 +74,15 @@ export default function DashboardPage() {
 
   // ── Computed values ───────────────────────────────────────────────────
   const kpis = computeKpis(orders)
+
+  // Order Status donut reflects the current calendar month only.
+  const now = new Date()
+  const monthOrders = orders.filter(o => {
+    const d = new Date(o.created_at)
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  })
+  const monthKpis = computeKpis(monthOrders)
+
   const baseChart = buildDailyChartData(orders)
   // Overlay real VAPI call counts onto the chart when available; otherwise the
   // "calls" series falls back to the order-count proxy from buildDailyChartData.
@@ -87,28 +101,35 @@ export default function DashboardPage() {
 
       <div style={{ padding: '28px 32px' }}>
 
-        {/* ── Brain Hero ─────────────────────────────────────────────────── */}
-        <div
-          className="relative overflow-hidden rounded-[20px] mb-6"
-          style={{
-            background: 'linear-gradient(135deg, rgba(5,8,21,0.9), rgba(8,12,26,0.9))',
-            border: '1px solid var(--border2)',
-            padding: '32px 36px',
-          }}
-        >
-          {/* Glow */}
+        {/* ── Hero ───────────────────────────────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-[20px] mb-6" style={{ height: 260 }}>
+          {/* Photo */}
           <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse 600px 300px at 70% 50%, rgba(45,124,246,0.08) 0%, transparent 60%)' }}
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "url('/hero.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 40%',
+              filter: 'brightness(0.55) saturate(1.15)',
+            }}
+          />
+          {/* Gradient overlay for text legibility */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(100deg, rgba(3,6,15,0.96) 0%, rgba(3,6,15,0.8) 42%, rgba(3,6,15,0.28) 75%, rgba(3,6,15,0.08) 100%)',
+            }}
           />
 
-          <div className="relative flex items-center justify-between">
-            <div style={{ maxWidth: 520 }}>
-              <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 6 }}>
+          <div className="relative z-10 h-full flex flex-col">
+            <div className="flex-1 flex items-center justify-between" style={{ padding: '0 40px' }}>
+            {/* Left text */}
+            <div>
+              <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 10 }}>
                 Good {getGreeting()}, Hammad 👋
               </p>
-              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-1px', marginBottom: 8, color: '#fff' }}>
-                Your AI workforce is{' '}
+              <h1 style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-2px', lineHeight: 1, marginBottom: 10, color: '#fff' }}>
+                You relax.<br />
                 <span
                   style={{
                     background: 'linear-gradient(90deg, var(--blue2), var(--cyan))',
@@ -117,105 +138,115 @@ export default function DashboardPage() {
                     backgroundClip: 'text',
                   }}
                 >
-                  running everything.
+                  Voxa runs.
                 </span>
               </h1>
-              <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14, color: 'var(--text2)', maxWidth: 380, lineHeight: 1.6 }}>
                 {loading
                   ? 'Loading your dashboard data…'
                   : kpis.totalOrders > 0
-                  ? `Voxa has captured ${kpis.totalOrders} orders totalling ${formatGBP(kpis.totalRevenue)}. Every call answered. Every order logged. Zero missed.`
+                  ? `Your AI workforce captured ${kpis.totalOrders} orders totalling ${formatGBP(kpis.totalRevenue)} and saved you ${kpis.totalOrders * 2} hours. Not one customer went unanswered.`
                   : 'Voxa is live and ready. Orders will appear here as soon as the first call comes in.'}
               </p>
             </div>
 
-            {/* Hero Stats */}
-            <div className="flex gap-8 relative z-10">
-              <HeroStat value={kpis.totalOrders.toString()} label="Orders" color="var(--blue2)" />
-              <HeroStat value={formatGBP(kpis.totalRevenue)} label="Revenue" color="var(--green)" />
-              <HeroStat
-                value={`${kpis.totalOrders * 2}h`}
-                label="Hours Saved"
-                color="var(--cyan)"
-              />
-            </div>
-          </div>
+            {/* Right cluster */}
+            <div className="flex flex-col items-end gap-3.5">
+              {/* Status chip */}
+              <div
+                className="flex items-center gap-2.5"
+                style={{
+                  background: 'rgba(18,26,46,0.62)',
+                  border: '1px solid rgba(45,124,246,0.28)',
+                  borderRadius: 12,
+                  padding: '10px 14px',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                {/* Mini orb — same multi-ring style as the big panel orb, scaled down */}
+                <div className="relative" style={{ width: 36, height: 36, flexShrink: 0 }}>
+                  <div className="absolute inset-0 rounded-full vox-spin-slow" style={{ border: '1px solid rgba(45,124,246,0.25)' }}>
+                    <span style={{ position: 'absolute', top: -2, left: 'calc(50% - 2px)', width: 4, height: 4, borderRadius: '50%', background: '#2D7CF6', boxShadow: '0 0 6px #2D7CF6' }} />
+                  </div>
+                  <div className="absolute rounded-full vox-spin-mid" style={{ inset: 5, border: '1px dashed rgba(0,212,255,0.18)' }}>
+                    <span style={{ position: 'absolute', bottom: -1.5, left: 'calc(50% - 1.5px)', width: 3, height: 3, borderRadius: '50%', background: 'var(--cyan)', boxShadow: '0 0 5px var(--cyan)' }} />
+                  </div>
+                  <div className="absolute rounded-full vox-breathe" style={{ inset: 10, background: 'radial-gradient(circle at 38% 34%, rgba(130,200,255,0.45), rgba(0,100,220,0.22) 60%, transparent)' }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="vox-core" style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--cyan)' }} />
+                  </div>
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Voxa is running</p>
+                  <p style={{ fontSize: 11, color: 'var(--text2)', marginTop: 1 }}>All systems live · 24/7</p>
+                </div>
+              </div>
 
-          {/* Orb decoration */}
-          <div className="absolute right-0 top-0 bottom-0 pointer-events-none overflow-hidden" style={{ width: 280 }}>
-            <div
-              className="absolute animate-orb-breathe"
-              style={{
-                top: '50%', right: 30,
-                transform: 'translateY(-50%)',
-                width: 160, height: 160,
-                borderRadius: '50%',
-                background: 'radial-gradient(circle at 38% 36%, rgba(180,150,255,0.6) 0%, rgba(45,124,246,0.5) 40%, rgba(0,212,255,0.2) 70%, transparent 85%)',
-                boxShadow: '0 0 40px rgba(45,124,246,0.4), 0 0 80px rgba(45,124,246,0.2)',
-              }}
-            />
-            <div
-              className="absolute animate-ring-spin"
-              style={{
-                top: '50%', right: 30,
-                transform: 'translate(50%, -50%)',
-                width: 200, height: 200,
-                borderRadius: '50%',
-                border: '1px solid rgba(45,124,246,0.15)',
-              }}
-            />
+              {/* Hero Stats */}
+              <div className="flex items-center gap-6">
+                <HeroStat value={(callStats?.totalCalls ?? 0).toString()} label="Calls" color="var(--blue2)" />
+                <span style={{ width: 1, height: 50, background: 'var(--border)' }} />
+                <HeroStat value={formatGBP(kpis.totalRevenue)} label="Revenue" color="var(--green)" />
+                <span style={{ width: 1, height: 50, background: 'var(--border)' }} />
+                <HeroStat value={`${kpis.totalOrders * 2}h`} label="Hours Saved" color="var(--cyan)" />
+              </div>
+            </div>
+            </div>
+
+            {/* Live ticker — pinned to the bottom of the hero */}
+            <LiveTicker orders={orders} />
           </div>
         </div>
 
         {/* ── KPI Grid ───────────────────────────────────────────────────── */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <KpiCard
-            icon="📞" label="Total Orders" value={kpis.totalOrders}
+            Icon={ShoppingBag} label="Total Orders" value={kpis.totalOrders}
             sub={`${kpis.todayOrders} today`} accent="blue"
           />
           <KpiCard
-            icon="✅" label="Delivered" value={kpis.deliveredOrders}
+            Icon={CheckCircle2} label="Delivered" value={kpis.deliveredOrders}
             sub={kpis.totalOrders > 0 ? `${Math.round((kpis.deliveredOrders / kpis.totalOrders) * 100)}% success rate` : '—'}
             accent="green"
           />
           <KpiCard
-            icon="🛒" label="Active Orders" value={kpis.newOrders + kpis.cookingOrders + kpis.readyOrders}
+            Icon={Flame} label="Active Orders" value={kpis.newOrders + kpis.cookingOrders + kpis.readyOrders}
             sub={`${kpis.cookingOrders} cooking · ${kpis.readyOrders} ready`}
             accent="amber"
           />
           <KpiCard
-            icon="💰" label="Revenue" value={formatGBP(kpis.totalRevenue)}
+            Icon={PoundSterling} label="Revenue" value={formatGBP(kpis.totalRevenue)}
             sub={`Avg ${formatGBP(kpis.avgOrderValue)} per order`}
             accent="cyan"
           />
           <KpiCard
-            icon="🚗" label="Delivery Orders" value={kpis.deliveryOrders}
+            Icon={Truck} label="Delivery Orders" value={kpis.deliveryOrders}
             sub={kpis.totalOrders > 0 ? `${Math.round((kpis.deliveryOrders / kpis.totalOrders) * 100)}% of total` : '—'}
             accent="purple"
           />
           <KpiCard
-            icon="🏪" label="Collection Orders" value={kpis.collectionOrders}
+            Icon={Store} label="Collection Orders" value={kpis.collectionOrders}
             sub={kpis.totalOrders > 0 ? `${Math.round((kpis.collectionOrders / kpis.totalOrders) * 100)}% of total` : '—'}
             accent="blue"
           />
           <KpiCard
-            icon="❌" label="Failed Orders" value={kpis.failedOrders}
+            Icon={XCircle} label="Failed Orders" value={kpis.failedOrders}
             sub={kpis.totalOrders > 0 ? `${Math.round((kpis.failedOrders / kpis.totalOrders) * 100)}% fail rate` : '—'}
             accent="red"
           />
           <KpiCard
-            icon="📅" label="Today's Revenue" value={formatGBP(kpis.todayRevenue)}
+            Icon={CalendarDays} label="Today's Revenue" value={formatGBP(kpis.todayRevenue)}
             sub={`${kpis.todayOrders} orders today`}
             accent="green"
           />
         </div>
 
         {/* ── Charts Row ─────────────────────────────────────────────────── */}
-        <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-          <div style={{ gridColumn: 'span 2' }}>
+        <div className="grid gap-4 mb-6 items-stretch" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+          <div className="h-full" style={{ gridColumn: 'span 2' }}>
             <CallsOrdersChart data={chartData} />
           </div>
-          <OrderDonutChart kpis={kpis} />
+          <OrderDonutChart kpis={monthKpis} />
         </div>
 
         {/* ── Live Orders Table ──────────────────────────────────────────── */}
@@ -227,12 +258,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* ── Live Call Status (VAPI) ────────────────────────────────────── */}
-        <div className="mb-6">
-          <CallStatus stats={callStats} loading={callsLoading} error={callsError} />
-        </div>
-
-        {/* ── Bottom Grid: Chef / Driver / AI Insights ───────────────────── */}
+        {/* ── Chef / Driver / AI Insights ────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <ChefView
             orders={orders}
@@ -247,16 +273,16 @@ export default function DashboardPage() {
           <AIInsights kpis={kpis} />
         </div>
 
-        {/* ── Agent Status ───────────────────────────────────────────────── */}
-        {/* <div className="mb-6">
-          <AgentStatus
-            ordersProcessed={kpis.totalOrders}
-            voiceAnswerRate={callStats?.answerRatePct}
-            voiceCallCount={callStats?.totalCalls}
-          />
-        </div> */}
+        {/* ── Live Call Feed ─────────────────────────────────────────────── */}
+        <div className="mb-6">
+          <CallStatus stats={callStats} loading={callsLoading} error={callsError} />
+          {/* AI Agents section — commented out per request
+          <AIAgents callStats={callStats} ordersProcessed={kpis.totalOrders} />
+          */}
+        </div>
 
-        {/* ── Plan Tiers ─────────────────────────────────────────────────── */}
+        {/* ── Plan Tiers (hidden per request) ─────────────────────────────── */}
+        {false && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -309,6 +335,7 @@ export default function DashboardPage() {
             />
           </div>
         </div>
+        )}
 
       </div>
     </>

@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-inter: 'Plus Jakarta Sans', sans-serif;
+  --font-inter: 'Inter', sans-serif;
   --font-jetbrains: 'JetBrains Mono', monospace;
 
   --bg:      #02040f;
@@ -59,3 +59,20 @@ body {
 
 /* Focus ring */
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+
+/* ─── V3 Voxa Running Panel animations ─────────────────────────────────── */
+@keyframes vox-spin   { to { transform: rotate(360deg); } }
+@keyframes vox-breathe{ 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes vox-core   {
+  0%,100% { box-shadow: 0 0 0 4px rgba(0,212,255,0.12), 0 0 20px rgba(0,212,255,0.4); }
+  50%     { box-shadow: 0 0 0 10px rgba(0,212,255,0.04), 0 0 40px rgba(0,212,255,0.7); }
+}
+@keyframes vox-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.vox-spin-slow { animation: vox-spin 18s linear infinite; }
+.vox-spin-mid  { animation: vox-spin 11s linear infinite reverse; }
+.vox-spin-fast { animation: vox-spin 6s linear infinite; }
+.vox-breathe   { animation: vox-breathe 2.5s ease-in-out infinite; }
+.vox-core      { animation: vox-core 2s ease-in-out infinite; }
+.vox-ticker    { animation: vox-ticker 24s linear infinite; }
+.vox-mini-ring { animation: vox-spin 8s linear infinite; }

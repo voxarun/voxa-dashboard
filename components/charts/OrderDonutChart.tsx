@@ -6,59 +6,69 @@ interface OrderDonutProps {
   kpis: DashboardKpis
 }
 
+const R = 36
+const C = 2 * Math.PI * R // circumference ≈ 226.19
+
 export default function OrderDonutChart({ kpis }: OrderDonutProps) {
-  const total = kpis.totalOrders || 1
+  const total = kpis.totalOrders
   const delivered = kpis.deliveredOrders
   const inProgress = kpis.cookingOrders + kpis.readyOrders + kpis.newOrders
   const failed = kpis.failedOrders
 
-  const successPct = Math.round((delivered / total) * 100)
-  const inProgressPct = Math.round((inProgress / total) * 100)
-  const failedPct = Math.round((failed / total) * 100)
-  const deliveryPct = Math.round((kpis.deliveryOrders / total) * 100)
-  const collectionPct = 100 - deliveryPct
+  const successPct = total > 0 ? Math.round((delivered / total) * 100) : 0
+  const deliveryPct = total > 0 ? Math.round((kpis.deliveryOrders / total) * 100) : 0
+  const collectionPct = total > 0 ? Math.round((kpis.collectionOrders / total) * 100) : 0
 
-  // Conic gradient degrees
-  const deliveredDeg = (delivered / total) * 360
-  const inProgressDeg = (inProgress / total) * 360
+  // Arc length per segment + cumulative offset (drawn clockwise from top).
+  const seg = (n: number) => (total > 0 ? (n / total) * C : 0)
+  const gLen = seg(delivered)
+  const aLen = seg(inProgress)
+  const rLen = seg(failed)
 
-  const conicBg = `conic-gradient(
-    var(--green)  0deg ${deliveredDeg}deg,
-    var(--amber)  ${deliveredDeg}deg ${deliveredDeg + inProgressDeg}deg,
-    var(--red)    ${deliveredDeg + inProgressDeg}deg 360deg
-  )`
+  const arcs = [
+    { len: gLen, off: 0,            color: 'var(--green)', show: delivered > 0 },
+    { len: aLen, off: -gLen,        color: 'var(--amber)', show: inProgress > 0 },
+    { len: rLen, off: -(gLen + aLen), color: 'var(--red)', show: failed > 0 },
+  ]
 
   return (
     <div
-      className="rounded-2xl"
+      className="rounded-2xl h-full"
       style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '22px 24px' }}
     >
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Order Breakdown</h3>
-          <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>By status · all time</p>
+          <h3 style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Order Status</h3>
+          <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>This month</p>
         </div>
       </div>
 
       {/* Donut */}
       <div className="flex items-center gap-6 mb-5">
-        <div className="relative flex-shrink-0" style={{ width: 110, height: 110 }}>
-          <div
-            className="rounded-full"
-            style={{ width: 110, height: 110, background: conicBg }}
-          />
-          {/* Hole */}
-          <div
-            className="absolute rounded-full flex items-center justify-center"
-            style={{
-              inset: 18,
-              background: 'var(--bg3)',
-              fontSize: 18,
-              fontWeight: 800,
-              color: '#fff',
-            }}
-          >
-            {successPct}%
+        <div className="relative flex-shrink-0" style={{ width: 88, height: 88 }}>
+          <svg viewBox="0 0 100 100" width="88" height="88" style={{ transform: 'rotate(-90deg)' }}>
+            {/* Track */}
+            <circle cx="50" cy="50" r={R} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="13" />
+            {/* Segments */}
+            {arcs.map((a, i) =>
+              a.show ? (
+                <circle
+                  key={i}
+                  cx="50" cy="50" r={R}
+                  fill="none"
+                  stroke={a.color}
+                  strokeWidth="13"
+                  strokeDasharray={`${a.len} ${C - a.len}`}
+                  strokeDashoffset={a.off}
+                  strokeLinecap="round"
+                />
+              ) : null
+            )}
+          </svg>
+          {/* Center label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--green)' }}>{successPct}%</span>
+            <span style={{ fontSize: 8, color: 'var(--text3)' }}>success</span>
           </div>
         </div>
 
@@ -70,8 +80,8 @@ export default function OrderDonutChart({ kpis }: OrderDonutProps) {
       </div>
 
       {/* Delivery vs Collection bars */}
-      <SparkBar label="Delivery"   pct={deliveryPct}    color="var(--purple)" />
-      <SparkBar label="Collection" pct={collectionPct}  color="var(--blue2)" />
+      <SparkBar label="Delivery"   pct={deliveryPct}   color="var(--blue2)" />
+      <SparkBar label="Collection" pct={collectionPct} color="rgba(45,124,246,0.35)" />
     </div>
   )
 }
