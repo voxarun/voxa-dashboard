@@ -22,26 +22,25 @@ export default function Topbar({ title, subtitle, notifCount = 0 }: TopbarProps)
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between px-8"
+      className="dash-topbar sticky top-0 z-40 flex items-center justify-between"
       style={{
-        height: 68,
         background: 'rgba(2,4,15,0.9)',
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border)',
       }}
     >
       {/* Left */}
-      <div className="flex items-center gap-4">
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px', color: '#fff' }}>
+      <div className="dash-topbar-left flex items-center gap-4">
+        <div className="dash-topbar-title-wrap">
+          <h1 className="dash-topbar-title" style={{ color: '#fff' }}>
             {title}
           </h1>
           {subtitle && (
-            <p style={{ fontSize: 13, color: 'var(--text2)', marginTop: 1 }}>{subtitle}</p>
+            <p className="dash-topbar-subtitle" style={{ color: 'var(--text2)' }}>{subtitle}</p>
           )}
         </div>
         <div
-          className="flex items-center gap-1.5 px-2.5 py-1"
+          className="dash-live-chip flex items-center gap-1.5 px-2.5 py-1"
           style={{
             fontSize: 11,
             fontWeight: 600,
@@ -60,8 +59,9 @@ export default function Topbar({ title, subtitle, notifCount = 0 }: TopbarProps)
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-3">
+      <div className="dash-topbar-right flex items-center gap-3">
         <div
+          className="dash-clock"
           style={{
             fontFamily: 'var(--font-jetbrains)',
             fontSize: 13,
@@ -128,7 +128,7 @@ export default function Topbar({ title, subtitle, notifCount = 0 }: TopbarProps)
 function TopbarBtn({ children }: { children: React.ReactNode }) {
   return (
     <button
-      className="relative flex items-center justify-center transition-all"
+      className="dash-topbar-btn relative flex items-center justify-center transition-all"
       style={{
         width: 36,
         height: 36,

@@ -19,8 +19,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar />
 
       <main
-        className="relative z-10"
-        style={{ marginLeft: 240, minHeight: '100vh', overflowX: 'hidden' }}
+        className="dashboard-main relative z-10"
+        style={{ minHeight: '100vh', overflowX: 'hidden' }}
       >
         {children}
       </main>

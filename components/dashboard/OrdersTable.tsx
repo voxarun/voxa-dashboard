@@ -57,10 +57,10 @@ export default function OrdersTable({ orders, onStatusChange, showAllColumns = f
   }
 
   return (
-    <section>
+    <section className="orders-section">
       {/* Section header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
+      <div className="orders-header flex items-center justify-between mb-4">
+        <div className="orders-title">
           <h2 style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>Live Order Feed</h2>
           <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
             Real-time orders from Voxa AI · {filterStatus === 'all'
@@ -68,7 +68,7 @@ export default function OrdersTable({ orders, onStatusChange, showAllColumns = f
               : `${filtered.length} ${cap(filterStatus)} · ${orders.length} total`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="orders-actions flex gap-2">
           <TblBtn icon={<Download size={14} />} onClick={exportCSV}>Export CSV</TblBtn>
 
           {/* Filter dropdown */}
@@ -114,16 +114,15 @@ export default function OrdersTable({ orders, onStatusChange, showAllColumns = f
 
       {/* Table */}
       <div
-        className="overflow-hidden rounded-2xl"
+        className="orders-card overflow-hidden rounded-2xl"
         style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         {/* Scroll area (header sticky inside) */}
-        <div style={{ maxHeight: 520, overflowY: 'auto' }}>
+        <div className="orders-scroll" style={{ maxHeight: 520 }}>
           {/* Head */}
           <div
-            className="grid px-5 py-3"
+            className="order-grid order-head grid px-5 py-3"
             style={{
-              gridTemplateColumns: '110px 1fr 180px 130px 110px 100px 90px',
               background: '#0a0e1a',
               borderBottom: '1px solid var(--border)',
               position: 'sticky',
@@ -173,9 +172,8 @@ function OrderRow({
   return (
     <>
       <div
-        className="grid px-5 items-center transition-colors duration-150 cursor-default"
+        className="order-grid order-row grid px-5 items-center transition-colors duration-150 cursor-default"
         style={{
-          gridTemplateColumns: '110px 1fr 180px 130px 110px 100px 90px',
           paddingTop: 14,
           paddingBottom: 14,
           borderBottom: '1px solid var(--border)',
@@ -259,10 +257,10 @@ function OrderRow({
       {/* Expandable detail row */}
       {open && (
         <div
-          className="px-5 pb-4"
+          className="order-detail px-5 pb-4"
           style={{ borderBottom: '1px solid var(--border)', background: 'rgba(45,124,246,0.03)' }}
         >
-          <div className="flex items-start gap-8 pt-3">
+          <div className="order-detail-grid flex items-start gap-8 pt-3">
             {/* Order detail */}
             <div className="flex-1">
               <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 8 }}>
@@ -288,7 +286,7 @@ function OrderRow({
               <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 8 }}>
                 Update Status
               </p>
-              <div className="flex gap-2">
+              <div className="order-status-actions flex gap-2">
                 {['new', 'cooking', 'ready', 'delivered'].map(s => (
                   <button
                     key={s}
@@ -344,7 +342,7 @@ function TblBtn({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+      className="table-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
       style={{
         background: primary ? 'var(--blue)' : baseBg,
         color: primary ? '#fff' : baseColor,

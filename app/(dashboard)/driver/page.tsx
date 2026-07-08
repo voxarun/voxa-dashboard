@@ -61,7 +61,7 @@ export default function DriverPage() {
         notifCount={orders.filter(o => o.status === 'ready').length}
       />
 
-      <div style={{ padding: '28px 32px' }}>
+      <div className="dash-page">
         {/* Quick stats */}
         <div className="grid grid-cols-2 gap-4 mb-6" style={{ maxWidth: 480 }}>
           <div

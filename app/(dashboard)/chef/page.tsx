@@ -67,9 +67,9 @@ export default function ChefPage() {
         notifCount={newCount}
       />
 
-      <div style={{ padding: '28px 32px' }}>
+      <div className="chef-page">
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="chef-stats-grid grid gap-4 mb-6">
           {[
             { label: 'New Orders', count: newCount, color: 'var(--blue2)', bg: 'rgba(45,124,246,0.10)' },
             { label: 'Cooking',    count: cookingCount, color: 'var(--amber)', bg: 'rgba(255,171,0,0.10)' },
@@ -77,7 +77,7 @@ export default function ChefPage() {
           ].map(stat => (
             <div
               key={stat.label}
-              className="rounded-2xl p-5"
+              className="chef-stat-card rounded-2xl p-5"
               style={{ background: stat.bg, border: `1px solid ${stat.color}30` }}
             >
               <div style={{ fontSize: 32, fontWeight: 800, color: stat.color }}>{stat.count}</div>

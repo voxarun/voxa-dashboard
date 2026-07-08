@@ -60,6 +60,203 @@ body {
 /* Focus ring */
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
 
+.dashboard-main {
+  margin-left: 240px;
+  max-width: calc(100vw - 240px);
+}
+
+.mobile-shellbar,
+.drawer-scrim,
+.mobile-drawer {
+  display: none;
+}
+
+.dash-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  padding: 28px 32px;
+}
+
+.dash-topbar {
+  min-height: 68px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 16px;
+  padding: 0 32px;
+}
+
+.dash-topbar-left,
+.dash-topbar-right,
+.dash-topbar-title-wrap {
+  min-width: 0;
+}
+
+.dash-topbar-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.dash-topbar-subtitle {
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.dash-hero {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 260px;
+}
+
+.dash-hero-main {
+  min-width: 0;
+  gap: 24px;
+  padding: 0 40px;
+}
+
+.dash-hero-copy,
+.dash-hero-side {
+  min-width: 0;
+}
+
+.dash-hero-title {
+  margin-bottom: 10px;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.dash-hero-text {
+  max-width: 380px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dash-hero-sep {
+  width: 1px;
+  height: 50px;
+  flex: 0 0 1px;
+}
+
+.dash-hero-stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.dash-kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dash-chart-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.dash-chart-wide {
+  grid-column: span 2;
+  min-width: 0;
+}
+
+.dash-work-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.orders-section,
+.orders-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.orders-header,
+.orders-title,
+.orders-actions {
+  min-width: 0;
+}
+
+.orders-card {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.orders-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.order-grid {
+  min-width: 860px;
+  grid-template-columns: 110px minmax(180px, 1fr) 180px 130px 110px 100px 90px;
+}
+
+.order-row > div {
+  min-width: 0;
+}
+
+.order-detail {
+  min-width: 860px;
+}
+
+.order-detail-grid {
+  min-width: 0;
+}
+
+.chef-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  padding: 28px 32px;
+}
+
+.chef-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.chef-stat-card,
+.chef-panel,
+.chef-order-list,
+.chef-order-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.chef-panel-head,
+.chef-order-head,
+.chef-actions,
+.chef-prep-timer {
+  min-width: 0;
+}
+
+.chef-panel-title,
+.chef-order-items {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chef-active-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.chef-action-btn {
+  min-width: 0;
+  min-height: 32px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
 /* ─── V3 Voxa Running Panel animations ─────────────────────────────────── */
 @keyframes vox-spin   { to { transform: rotate(360deg); } }
 @keyframes vox-breathe{ 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
@@ -76,3 +273,534 @@ body {
 .vox-core      { animation: vox-core 2s ease-in-out infinite; }
 .vox-ticker    { animation: vox-ticker 24s linear infinite; }
 .vox-mini-ring { animation: vox-spin 8s linear infinite; }
+
+@media (max-width: 960px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .dashboard-main {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    overflow-x: hidden;
+  }
+
+  .mobile-shellbar {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    background: rgba(5,8,21,0.96);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+  }
+
+  .mobile-shell-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .mobile-shell-client {
+    max-width: 58vw;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cyan);
+  }
+
+  .hamb-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .hamb-btn span {
+    position: absolute;
+    left: 10px;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--text);
+    transition: top 0.16s ease, transform 0.16s ease, opacity 0.16s ease;
+  }
+
+  .hamb-btn span:nth-child(1) { top: 12px; }
+  .hamb-btn span:nth-child(2) { top: 19px; }
+  .hamb-btn span:nth-child(3) { top: 26px; }
+  .hamb-btn.open span:nth-child(1) { top: 19px; transform: rotate(45deg); }
+  .hamb-btn.open span:nth-child(2) { opacity: 0; }
+  .hamb-btn.open span:nth-child(3) { top: 19px; transform: rotate(-45deg); }
+
+  /* Drawer has its own × close button — hide the hamburger while open so
+     only one close control is visible. */
+  .hamb-btn.open { display: none; }
+
+  .drawer-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: block;
+    border: 0;
+    background: rgba(0,0,0,0.58);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+
+  .drawer-scrim.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    display: flex;
+    width: min(350px, 86vw);
+    max-width: 100%;
+    height: 100vh;
+    min-width: 0;
+    flex-direction: column;
+    background: rgba(5,8,21,0.99);
+    border-right: 1px solid var(--border);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.45);
+    transform: translateX(-102%);
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-drawer.open {
+    transform: translateX(0);
+  }
+
+  .drawer-titlebar {
+    height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .drawer-close {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .drawer-nav {
+    flex: 1;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 10px 10px 18px;
+  }
+
+  .drawer-nav .nav-item {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .drawer-nav .nav-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .drawer-nav .nav-badge {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-shellbar {
+    padding: 0 12px;
+  }
+
+  .mobile-shell-client {
+    max-width: 48vw;
+  }
+
+  .mobile-drawer {
+    width: min(320px, 90vw);
+  }
+
+  .drawer-titlebar {
+    padding: 0 12px;
+  }
+
+  .drawer-nav {
+    padding: 9px 8px 16px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .dash-page {
+    padding: 24px;
+  }
+
+  .dash-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dash-chart-grid,
+  .dash-work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-chart-wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 960px) {
+  .dash-topbar {
+    top: 60px;
+    min-height: 62px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 18px;
+  }
+
+  .dash-topbar-left {
+    flex: 1 1 300px;
+  }
+
+  .dash-topbar-right {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .dash-page {
+    padding: 20px 18px 30px;
+  }
+
+  .dash-hero {
+    height: auto;
+    min-height: 300px;
+  }
+
+  .dash-hero-main {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding: 34px 28px 54px;
+  }
+
+  .dash-hero-side {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .dash-hero-text {
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-topbar {
+    align-items: flex-start;
+  }
+
+  .dash-topbar-left,
+  .dash-topbar-right {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .dash-topbar-right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dash-page {
+    padding: 18px 14px 28px;
+  }
+
+  .dash-hero-main {
+    padding: 28px 24px 50px;
+  }
+
+  .dash-hero-title {
+    font-size: 34px;
+    letter-spacing: -1px;
+  }
+
+  .dash-hero-stats {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .dash-hero-sep {
+    display: none;
+  }
+
+  .dash-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .orders-actions {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .table-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .order-detail-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .order-status-actions {
+    flex-wrap: wrap;
+  }
+
+  /* ══ Mobile single-row top bar & layout (≤768px) ══════════════════════
+     Desktop (>768px) is untouched. The hamburger lives in .mobile-shellbar
+     (outside <main>); the title/bell/avatar live in .dash-topbar (inside
+     <main>). To render them as ONE row, the shellbar becomes a fixed,
+     transparent, hamburger-only overlay pinned top-left, and the topbar is
+     pulled to top:0 with left padding that clears the hamburger. */
+
+  /* Shellbar → just the hamburger, floating over the topbar */
+  .mobile-shellbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: auto;
+    height: 54px;
+    padding: 0 0 0 12px;
+    background: transparent;
+    border-bottom: none;
+    backdrop-filter: none;
+    justify-content: flex-start;
+    z-index: 90;
+  }
+
+  /* Logo + client name never show in the top bar — only inside the drawer */
+  .mobile-shellbar .mobile-shell-brand {
+    display: none;
+  }
+
+  /* Topbar becomes the single row: [hamburger] · Title · [bell avatar] */
+  .dash-topbar {
+    position: sticky;
+    top: 0;
+    min-height: 54px;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 0 12px 0 56px;
+  }
+
+  /* Left region holds the centred page title */
+  .dash-topbar-left {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .dash-topbar-title-wrap {
+    min-width: 0;
+    text-align: center;
+  }
+
+  .dash-topbar-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Hide subtitle + LIVE chip — too much text for small screens */
+  .dash-topbar-subtitle,
+  .dash-live-chip {
+    display: none;
+  }
+
+  /* Right region: bell + avatar only */
+  .dash-topbar-right {
+    width: auto;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* Hide clock, search (1st button) and moon (3rd button); keep bell (2nd) */
+  .dash-clock,
+  .dash-topbar-right button:nth-of-type(1),
+  .dash-topbar-right button:nth-of-type(3) {
+    display: none;
+  }
+
+  /* Full-width content, no horizontal overflow */
+  .dashboard-main,
+  .dash-page,
+  .chef-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* KPI cards: 2 columns, contents centred */
+  .dash-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .dash-kpi-grid > div {
+    text-align: center;
+  }
+
+  .dash-kpi-grid > div > .flex {
+    justify-content: center;
+  }
+
+  /* Chef / Delivery / AI Insights cards: full width, contained (no overflow).
+     DriverView + AIInsights roots have no width class, and the driver card's
+     truncated address can spill in a flex row — clip at the card edge. */
+  .dash-work-grid > div {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* Order action buttons (Mark Cooking / Mark Ready): full width, stacked */
+  .chef-actions {
+    flex-direction: column;
+  }
+
+  .chef-action-btn {
+    width: 100%;
+  }
+
+  /* Live Call Feed stats → 2×2 grid (was a cramped single row of 4).
+     grid-cols-4 is only used here, so this override is safe. */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  /* Keep the left clearance for the fixed hamburger on the smallest screens */
+  .dash-topbar {
+    padding: 0 10px 0 56px;
+  }
+
+  .dash-topbar-title {
+    font-size: 18px;
+  }
+
+  /* Tighten KPI cards so 2 columns fit down to 320px without clipping */
+  .dash-kpi-grid > div {
+    padding: 16px;
+  }
+
+  .dash-kpi-grid > div > div:nth-of-type(3) {
+    font-size: 24px !important;
+  }
+
+  .dash-live-chip {
+    padding: 3px 8px;
+  }
+
+  .dash-clock {
+    min-width: 82px !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .dash-topbar-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 9px !important;
+  }
+
+  .dash-page {
+    padding: 14px 10px 24px;
+  }
+
+  .dash-hero {
+    border-radius: 14px;
+    min-height: 280px;
+  }
+
+  .dash-hero-main {
+    padding: 24px 18px 48px;
+  }
+
+  .dash-hero-title {
+    font-size: 28px;
+    letter-spacing: 0;
+  }
+
+  .dash-hero-text {
+    font-size: 12px;
+  }
+
+  .dash-hero-stat {
+    text-align: left;
+  }
+
+  .dash-hero-stat-value {
+    font-size: 24px;
+  }
+
+  .order-grid,
+  .order-detail {
+    min-width: 780px;
+  }
+}

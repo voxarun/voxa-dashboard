@@ -15,19 +15,19 @@ export default function ChefView({ orders, onStatusChange, compact = false }: Ch
 
   return (
     <div
-      className="rounded-2xl"
+      className="chef-panel rounded-2xl"
       style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: compact ? '22px 24px' : 24 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
+      <div className="chef-panel-head flex items-center justify-between mb-4">
+        <div className="chef-panel-title">
           <h3 style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>👨‍🍳 Chef Dashboard</h3>
           <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
             {active.length} order{active.length !== 1 ? 's' : ''} need attention
           </p>
         </div>
         <span
-          className="px-2.5 py-1 rounded-full text-xs font-semibold"
+          className="chef-active-badge px-2.5 py-1 rounded-full text-xs font-semibold"
           style={{ background: 'rgba(255,171,0,0.10)', color: 'var(--amber)' }}
         >
           {active.length} Active
@@ -35,7 +35,7 @@ export default function ChefView({ orders, onStatusChange, compact = false }: Ch
       </div>
 
       {/* Orders */}
-      <div className="flex flex-col gap-2.5" style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
+      <div className="chef-order-list flex flex-col gap-2.5" style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
         {active.length === 0 ? (
           <div
             className="flex items-center justify-center py-8 rounded-xl"
@@ -71,14 +71,14 @@ function ChefOrderCard({
 
   return (
     <div
-      className="rounded-[10px] p-3 transition-all"
+      className="chef-order-card rounded-[10px] p-3 transition-all"
       style={{
         background: isCooking ? 'rgba(255,171,0,0.05)' : 'var(--surface2)',
         border: `1px solid ${isCooking ? 'rgba(255,171,0,0.3)' : 'var(--border)'}`,
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="chef-order-head flex items-center justify-between mb-2">
         <span style={{ fontFamily: 'var(--font-jetbrains)', fontSize: 11, color: 'var(--blue2)' }}>
           {shortId(order.id)}
         </span>
@@ -88,7 +88,7 @@ function ChefOrderCard({
       </div>
 
       {/* Items — NO customer name, NO phone shown to chef */}
-      <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 8, lineHeight: 1.6 }}>
+      <div className="chef-order-items" style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 8, lineHeight: 1.6 }}>
         {asItems(order.items).map((item, i) => (
           <div key={i}>
             {item.quantity}× {item.name}
@@ -111,11 +111,11 @@ function ChefOrderCard({
       <PrepTimer createdAt={order.created_at} status={order.status} />
 
       {/* Actions */}
-      <div className="flex gap-1.5 mt-2">
+      <div className="chef-actions flex gap-1.5 mt-2">
         <button
           disabled={loading || isCooking}
           onClick={() => handle('cooking')}
-          className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          className="chef-action-btn flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
           style={{
             background: isCooking ? 'rgba(255,171,0,0.08)' : 'rgba(255,171,0,0.15)',
             color: 'var(--amber)',
@@ -130,7 +130,7 @@ function ChefOrderCard({
         <button
           disabled={loading}
           onClick={() => handle('ready')}
-          className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          className="chef-action-btn flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all"
           style={{
             background: 'rgba(0,230,118,0.15)',
             color: 'var(--green)',
@@ -153,7 +153,7 @@ function PrepTimer({ createdAt, status }: { createdAt: string; status: string })
   const isLate = mins >= 20
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="chef-prep-timer flex items-center gap-2">
       <div
         className="flex-1 h-1.5 rounded-full overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.06)' }}

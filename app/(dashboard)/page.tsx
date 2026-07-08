@@ -99,10 +99,10 @@ export default function DashboardPage() {
         notifCount={activeCount}
       />
 
-      <div style={{ padding: '28px 32px' }}>
+      <div className="dash-page">
 
         {/* ── Hero ───────────────────────────────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-[20px] mb-6" style={{ height: 260 }}>
+        <div className="dash-hero relative overflow-hidden rounded-[20px] mb-6">
           {/* Photo */}
           <div
             className="absolute inset-0"
@@ -122,13 +122,13 @@ export default function DashboardPage() {
           />
 
           <div className="relative z-10 h-full flex flex-col">
-            <div className="flex-1 flex items-center justify-between" style={{ padding: '0 40px' }}>
+            <div className="dash-hero-main flex-1 flex items-center justify-between">
             {/* Left text */}
-            <div>
+            <div className="dash-hero-copy">
               <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 10 }}>
                 Good {getGreeting()}, Hammad 👋
               </p>
-              <h1 style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-2px', lineHeight: 1, marginBottom: 10, color: '#fff' }}>
+              <h1 className="dash-hero-title" style={{ color: '#fff' }}>
                 You relax.<br />
                 <span
                   style={{
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                   Voxa runs.
                 </span>
               </h1>
-              <p style={{ fontSize: 14, color: 'var(--text2)', maxWidth: 380, lineHeight: 1.6 }}>
+              <p className="dash-hero-text" style={{ color: 'var(--text2)' }}>
                 {loading
                   ? 'Loading your dashboard data…'
                   : kpis.totalOrders > 0
@@ -151,7 +151,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Right cluster */}
-            <div className="flex flex-col items-end gap-3.5">
+            <div className="dash-hero-side flex flex-col items-end gap-3.5">
               {/* Status chip */}
               <div
                 className="flex items-center gap-2.5"
@@ -183,11 +183,11 @@ export default function DashboardPage() {
               </div>
 
               {/* Hero Stats */}
-              <div className="flex items-center gap-6">
+              <div className="dash-hero-stats flex items-center gap-6">
                 <HeroStat value={(callStats?.totalCalls ?? 0).toString()} label="Calls" color="var(--blue2)" />
-                <span style={{ width: 1, height: 50, background: 'var(--border)' }} />
+                <span className="dash-hero-sep" style={{ background: 'var(--border)' }} />
                 <HeroStat value={formatGBP(kpis.totalRevenue)} label="Revenue" color="var(--green)" />
-                <span style={{ width: 1, height: 50, background: 'var(--border)' }} />
+                <span className="dash-hero-sep" style={{ background: 'var(--border)' }} />
                 <HeroStat value={`${kpis.totalOrders * 2}h`} label="Hours Saved" color="var(--cyan)" />
               </div>
             </div>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── KPI Grid ───────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="dash-kpi-grid grid gap-4 mb-6">
           <KpiCard
             Icon={ShoppingBag} label="Total Orders" value={kpis.totalOrders}
             sub={`${kpis.todayOrders} today`} accent="blue"
@@ -242,8 +242,8 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Charts Row ─────────────────────────────────────────────────── */}
-        <div className="grid gap-4 mb-6 items-stretch" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-          <div className="h-full" style={{ gridColumn: 'span 2' }}>
+        <div className="dash-chart-grid grid gap-4 mb-6 items-stretch">
+          <div className="dash-chart-wide h-full">
             <CallsOrdersChart data={chartData} />
           </div>
           <OrderDonutChart kpis={monthKpis} />
@@ -259,7 +259,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Chef / Driver / AI Insights ────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="dash-work-grid grid gap-4 mb-6">
           <ChefView
             orders={orders}
             onStatusChange={handleStatusChange as any}
@@ -346,8 +346,8 @@ export default function DashboardPage() {
 
 function HeroStat({ value, label, color }: { value: string; label: string; color: string }) {
   return (
-    <div className="text-center">
-      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', color }}>{value}</div>
+    <div className="dash-hero-stat text-center">
+      <div className="dash-hero-stat-value" style={{ color }}>{value}</div>
       <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 2, fontWeight: 500 }}>{label}</div>
     </div>
   )

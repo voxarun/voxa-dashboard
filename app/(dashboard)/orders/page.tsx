@@ -49,7 +49,7 @@ export default function OrdersPage() {
     <>
       <Topbar title="Orders" subtitle={`${filtered.length} orders`} notifCount={orders.filter(o => o.status === 'new').length} />
 
-      <div style={{ padding: '28px 32px' }}>
+      <div className="dash-page">
         {/* Status filters */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {STATUS_FILTERS.map(s => (
