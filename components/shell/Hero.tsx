@@ -9,6 +9,7 @@ export function Hero({
   statusLabel = "Voxa AI",
   statusValue = "Live",
   tickerItems,
+  backgroundImage,
 }: {
   eyebrow: string;
   headline: string;
@@ -16,6 +17,7 @@ export function Hero({
   statusLabel?: string;
   statusValue?: string;
   tickerItems: string[];
+  backgroundImage: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -64,7 +66,14 @@ export function Hero({
   }, []);
 
   return (
-    <div ref={heroRef} className="hero hero-v2" id="top">
+    <div
+      ref={heroRef}
+      className="hero hero-v2"
+      id="top"
+      style={{
+        backgroundImage: `linear-gradient(rgba(3,6,15,0.74), rgba(3,6,15,0.86)), url("${backgroundImage}")`,
+      }}
+    >
       <canvas ref={canvasRef} className="hero-v2-canvas" />
       <div className="hero-v2-fade" />
 

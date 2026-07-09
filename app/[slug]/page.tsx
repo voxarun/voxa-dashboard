@@ -37,6 +37,10 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
     },
   ];
 
+  const heroImage = isTaxi
+    ? "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1600&q=80"
+    : "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80";
+
   return (
     <div>
       <Hero
@@ -46,6 +50,7 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
         statusLabel="Voxa AI"
         statusValue={client.is_open ? "Live · Open" : "Live · Closed"}
         tickerItems={tickerItems}
+        backgroundImage={heroImage}
       />
 
       <KpiGrid tiles={tiles} />

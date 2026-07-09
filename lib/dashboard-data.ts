@@ -19,6 +19,12 @@ export async function getClientBySlug(slug: string): Promise<Client | null> {
   return (data as Client) ?? null;
 }
 
+export async function getClientOwner(clientId: string): Promise<Profile | null> {
+  const supabase = await createServerSupabase();
+  const { data } = await supabase.from("profiles").select("*").eq("client_id", clientId).eq("role", "owner").maybeSingle();
+  return (data as Profile) ?? null;
+}
+
 export async function getAllClients(): Promise<Client[]> {
   const supabase = await createServerSupabase();
   const { data } = await supabase.from("clients").select("*").order("created_at", { ascending: false });

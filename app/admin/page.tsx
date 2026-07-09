@@ -1,26 +1,65 @@
 import Link from "next/link";
 import { getAllClients, getRecentOrders, getCallHealth, summarizeOrders } from "@/lib/dashboard-data";
+import { getAllServiceHealth } from "@/lib/monitoring";
 import { Hero } from "@/components/shell/Hero";
 import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
+import { VoxaBrain } from "@/components/shell/VoxaBrain";
+
+function timeAgo(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso).getTime();
+  const diffMin = Math.round((Date.now() - d) / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  return `${Math.round(diffH / 24)}d ago`;
+}
 
 export default async function AdminOverviewPage() {
   const clients = await getAllClients();
 
-  const rows = await Promise.all(
-    clients.map(async (c) => {
-      const [{ rows: orders }, health] = await Promise.all([getRecentOrders(c, 100), getCallHealth(c)]);
-      const kpi = summarizeOrders(orders, c);
-      return { client: c, kpi, health };
-    })
-  );
+  const [rows, serviceHealth] = await Promise.all([
+    Promise.all(
+      clients.map(async (c) => {
+        const [{ rows: orders }, health] = await Promise.all([getRecentOrders(c, 100), getCallHealth(c)]);
+        const kpi = summarizeOrders(orders, c);
+        return { client: c, kpi, health, orders };
+      })
+    ),
+    getAllServiceHealth(),
+  ]);
 
   const totalClients = clients.length;
   const healthyCount = rows.filter((r) => r.health.healthy).length;
   const totalCalls = rows.reduce((sum, r) => sum + r.health.totalCalls, 0);
   const liveOrdering = clients.filter((c) => c.online_ordering_enabled).length;
 
+  // Real cross-client activity feed — newest rows across every client's
+  // orders/bookings table, merged and sorted. No synthetic events.
+  const activity = rows
+    .flatMap((r) =>
+      r.orders.map((o) => ({
+        client: r.client.name,
+        isTaxi: r.client.data_project === "taxi",
+        created_at: o.created_at as string | null,
+        customer_name: o.customer_name as string | null,
+        status: o.status as string | null,
+      }))
+    )
+    .filter((a) => a.created_at)
+    .sort((a, b) => new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime())
+    .slice(0, 8)
+    .map((a) => ({
+      client: a.client,
+      what: `${a.isTaxi ? "Booking" : "Order"} ${a.status === "new" ? "received" : a.status ?? "updated"}`,
+      how: a.customer_name?.trim() || "customer",
+      when: timeAgo(a.created_at),
+      color: a.status === "new" ? "var(--amber)" : "var(--green)",
+    }));
+
   const tickerItems = rows
-    .flatMap((r) => (r.health.totalCalls > 0 ? [`• ${r.client.name} — ${r.health.totalCalls} calls logged`] : []))
+    .flatMap((r) => (r.health.totalCalls > 0 ? [{ text: `${r.client.name} — ${r.health.totalCalls} calls logged`, color: "var(--cyan)" }] : []))
     .slice(0, 10);
 
   const tiles: KpiTile[] = [
@@ -35,6 +74,8 @@ export default async function AdminOverviewPage() {
     { icon: "🌐", tone: "kg", label: "Online Ordering Live", value: `${liveOrdering} / ${totalClients}` },
   ];
 
+  const healthRows = [serviceHealth.vapi, serviceHealth.twilio, serviceHealth.n8n];
+
   return (
     <div>
       <Hero
@@ -43,12 +84,48 @@ export default async function AdminOverviewPage() {
         headlineEm="One view."
         statusLabel="Voxa AI"
         statusValue="Monitoring live"
-        tickerItems={tickerItems}
+        tickerItems={tickerItems.map((t) => t.text)}
+        backgroundImage="/images/hero-admin.jpg"
       />
 
       <KpiGrid tiles={tiles} />
 
+      <VoxaBrain activity={activity} tickerItems={tickerItems} brainLabel="VOXA AI BRAIN" />
+
       <div style={{ marginBottom: 20 }} id="health">
+        <div className="ot-hdr">
+          <div>
+            <div className="ot-title">System Health</div>
+            <div className="ot-sub">Live status of the services powering every client</div>
+          </div>
+        </div>
+        <div className="fleet-grid" style={{ gridTemplateColumns: "repeat(3,minmax(0,1fr))" }}>
+          {healthRows.map((h) => (
+            <div key={h.service} className="card">
+              <div className="ch">
+                <div>
+                  <div className="ct" style={{ textTransform: "capitalize" }}>{h.service}</div>
+                  <div className="cs">{h.detail}</div>
+                </div>
+                <span className={`badge ${!h.configured ? "r" : h.healthy ? "g" : "a"}`}>
+                  {!h.configured ? "Not connected" : h.headline}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  className="pulse-dot"
+                  style={{ background: !h.configured ? "var(--red)" : h.healthy ? "var(--green)" : "var(--amber)" }}
+                />
+                <span style={{ fontSize: 11, color: "var(--t2)" }}>
+                  {!h.configured ? "Add credentials in Vercel to activate" : h.healthy ? "Operating normally" : "Needs attention"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
         <div className="ot-hdr">
           <div>
             <div className="ot-title">All Clients</div>
@@ -81,9 +158,12 @@ export default async function AdminOverviewPage() {
                 </span>
               </div>
               <div className="td">{kpi.total}</div>
-              <div className="td">
+              <div className="td" style={{ display: "flex", gap: 6 }}>
                 <Link href={`/${client.slug}`} className="btn" style={{ textDecoration: "none" }}>
                   View →
+                </Link>
+                <Link href={`/admin/clients/${client.slug}`} className="btn p" style={{ textDecoration: "none" }}>
+                  Manage
                 </Link>
               </div>
             </div>

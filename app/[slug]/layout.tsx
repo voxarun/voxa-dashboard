@@ -66,6 +66,7 @@ export default async function ClientLayout({
         mobileTitle={`${client.name} · Command Centre`}
         sections={sections}
         logoutSlot={<LogoutButton />}
+        homeHref={`/${slug}`}
       />
       <div className="main">
         <Topbar title={`${client.name} · Command Centre`} avatarInitial={client.name.charAt(0).toUpperCase()} />

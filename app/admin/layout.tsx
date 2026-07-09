@@ -45,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         mobileTitle="Voxa Admin"
         sections={sections}
         logoutSlot={<LogoutButton />}
+        homeHref="/admin"
       />
       <div className="main">
         <Topbar title="Voxa Admin · Platform Overview" avatarInitial="V" />

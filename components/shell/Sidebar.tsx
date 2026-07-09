@@ -44,6 +44,7 @@ export function Sidebar({
   mobileTitle,
   sections,
   logoutSlot,
+  homeHref,
 }: {
   clientTag: string;
   clientName: string;
@@ -51,16 +52,17 @@ export function Sidebar({
   mobileTitle: string;
   sections: NavSection[];
   logoutSlot: React.ReactNode;
+  homeHref: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <aside className="sb">
-        <div className="sb-logo">
+        <a className="sb-logo" href={homeHref} style={{ textDecoration: "none", cursor: "pointer" }}>
           <div className="logo-mark" />
           <span className="logo-text">Voxa</span>
-        </div>
+        </a>
         <div className="sb-client">
           <div className="sbc-tag">{clientTag}</div>
           <div className="sbc-name">{clientName}</div>
@@ -105,13 +107,13 @@ export function Sidebar({
 
       <aside className={`mobile-drawer ${open ? "open" : ""}`} aria-hidden={!open}>
         <div className="drawer-head">
-          <div className="mobile-brand">
+          <a className="mobile-brand" href={homeHref} style={{ textDecoration: "none" }}>
             <div className="logo-mark" />
             <div>
               <div className="logo-text">Voxa</div>
               <div className="mobile-client">{clientName}</div>
             </div>
-          </div>
+          </a>
           <button className="drawer-close" type="button" aria-label="Close menu" onClick={() => setOpen(false)}>
             ×
           </button>

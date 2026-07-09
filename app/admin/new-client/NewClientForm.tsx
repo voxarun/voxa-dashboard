@@ -16,8 +16,18 @@ export function NewClientForm() {
   const [brandColor, setBrandColor] = useState("#0094ff");
   const [planTier, setPlanTier] = useState<"basic" | "pro" | "empire">("basic");
   const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
+  const [ownerPassword, setOwnerPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  function generatePassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$";
+    let pw = "";
+    for (let i = 0; i < 14; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+    setOwnerPassword(pw);
+  }
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -38,13 +48,16 @@ export function NewClientForm() {
         brandColor,
         planTier,
         ownerPhone: ownerPhone.trim(),
+        ownerEmail: ownerEmail.trim(),
+        ownerPassword: ownerPassword.trim(),
       });
       if (!res.ok) {
         setError(res.error);
         return;
       }
+      if (res.warning) setWarning(res.warning);
       setSuccess(true);
-      setTimeout(() => router.push("/admin"), 1200);
+      setTimeout(() => router.push("/admin"), res.warning ? 4000 : 1200);
     });
   }
 
@@ -125,9 +138,51 @@ export function NewClientForm() {
         <input className={inputCls} style={inputStyle} value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+447700000000" />
       </div>
 
+      <div className="rounded-xl border p-3.5" style={{ borderColor: "var(--b1)", background: "var(--s1)" }}>
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
+          Owner login (optional — creates their dashboard.voxa.run/&#123;slug&#125; account now)
+        </div>
+        <div className="space-y-3">
+          <input
+            type="email"
+            className={inputCls}
+            style={inputStyle}
+            value={ownerEmail}
+            onChange={(e) => setOwnerEmail(e.target.value)}
+            placeholder="owner@theirbusiness.com"
+          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className={inputCls}
+              style={inputStyle}
+              value={ownerPassword}
+              onChange={(e) => setOwnerPassword(e.target.value)}
+              placeholder="Password"
+            />
+            <button
+              type="button"
+              onClick={generatePassword}
+              className="whitespace-nowrap rounded-xl border px-3 text-xs font-semibold"
+              style={{ borderColor: "var(--b1)", color: "var(--t2)" }}
+            >
+              Generate
+            </button>
+          </div>
+          <p className="text-[11px]" style={{ color: "var(--t3)" }}>
+            Leave both blank to skip — you can create the login later from this client&apos;s Manage page.
+          </p>
+        </div>
+      </div>
+
       {error && (
         <div className="rounded-xl border px-3.5 py-2.5 text-sm" style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.08)", color: "var(--red)" }}>
           {error}
+        </div>
+      )}
+      {warning && (
+        <div className="rounded-xl border px-3.5 py-2.5 text-sm" style={{ borderColor: "rgba(255,171,0,0.3)", background: "rgba(255,171,0,0.08)", color: "var(--amber)" }}>
+          {warning}
         </div>
       )}
       {success && (
@@ -146,9 +201,8 @@ export function NewClientForm() {
       </button>
 
       <p className="text-xs" style={{ color: "var(--t3)" }}>
-        This creates the business record only (goes live on order.voxa.run/&#123;slug&#125; and dashboard.voxa.run/&#123;slug&#125;
-        immediately). Their staff login still needs to be created once, manually, in Supabase Auth — ask Claude or do it in the
-        Supabase dashboard under Authentication → Users.
+        Goes live on order.voxa.run/&#123;slug&#125; and dashboard.voxa.run/&#123;slug&#125; immediately. If you filled in the owner
+        login above, their dashboard account is created in this same step — nothing to set up by hand.
       </p>
     </form>
   );
