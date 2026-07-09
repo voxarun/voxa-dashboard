@@ -33,12 +33,12 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
       {!n8nConfigured && (
         <div
           className="rounded-2xl border p-4 text-sm"
-          style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.06)", color: "var(--red)", marginBottom: 20 }}
+          style={{ borderColor: "rgba(0,148,255,0.3)", background: "rgba(0,148,255,0.06)", color: "var(--blue)", marginBottom: 20 }}
         >
-          <strong>n8n not connected for this client.</strong> clients.n8n_webhook_url is empty, so orders/bookings
-          save to Supabase fine but SMS, the kitchen alert{isTaxi ? "" : ", and PrintNode receipts"} silently
-          don&apos;t fire. Set the webhook URL for this client to turn automation on — the owner sees a matching
-          notice on their dashboard.
+          <strong>No dedicated n8n webhook set for this client</strong> — clients.n8n_webhook_url is empty, so
+          orders/bookings route through the platform-wide N8N_WEBHOOK_URL_DEFAULT instead (confirmed set in
+          voxa-online-ordering-system&apos;s Vercel env vars, so this is very likely fine as-is). Only set a
+          value below if this client needs its own dedicated n8n workflow separate from the shared default.
         </div>
       )}
 
