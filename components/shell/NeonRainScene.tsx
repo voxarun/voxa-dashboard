@@ -19,7 +19,8 @@ export function NeonRainScene() {
     let W = 0,
       H = 0,
       t = 0,
-      raf = 0;
+      raf = 0,
+      frameCount = 0;
 
     const COLS = ["#ff00cc", "#00f0ff", "#ffcc00", "#ff6600", "#cc00ff"];
     const GLOW = ["rgba(255,0,200,", "rgba(0,240,255,", "rgba(255,200,0,", "rgba(255,100,0,", "rgba(180,0,255,"];
@@ -88,14 +89,18 @@ export function NeonRainScene() {
           const y = j * (H / 8);
           const a = Math.sin(t * 0.6 + i * 0.5 + j * 0.7) * 0.3 + 0.35;
           if (a > 0.15) {
+            // No shadowBlur here on purpose: this loop runs up to ~150-200
+            // times per frame, and shadowBlur is one of the most expensive
+            // Canvas2D operations -- doing it this many times per frame was
+            // heavy enough to make the whole hero (and the page load it's
+            // part of) feel sluggish/stuck on slower machines. A slightly
+            // larger flat dot reads almost identically at this size without
+            // the blur pass.
             const ci = cols[i % cols.length]?.ci || 0;
             ctx!.beginPath();
-            ctx!.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx!.arc(x, y, 1.8, 0, Math.PI * 2);
             ctx!.fillStyle = GLOW[ci] + a + ")";
-            ctx!.shadowColor = COLS[ci];
-            ctx!.shadowBlur = 5;
             ctx!.fill();
-            ctx!.shadowBlur = 0;
           }
         }
       }
@@ -170,20 +175,30 @@ export function NeonRainScene() {
         }
       });
 
-      ([
-        [0.42, 0.35, "rgba(255,0,200,", 0.13],
-        [0.65, 0.6, "rgba(0,240,255,", 0.11],
-        [0.85, 0.2, "rgba(255,200,0,", 0.1],
-        [0.55, 0.85, "rgba(180,0,255,", 0.08],
-        [0.95, 0.7, "rgba(255,100,0,", 0.07],
-      ] as [number, number, string, number][]).forEach(([ex, ey, col, a]) => {
-        const pulse = a + Math.sin(t * 0.4 + ex * 5) * 0.03;
-        const g = ctx!.createRadialGradient(W * ex, H * ey, 0, W * ex, H * ey, H * 0.7);
-        g.addColorStop(0, col + pulse + ")");
-        g.addColorStop(1, col + "0)");
-        ctx!.fillStyle = g;
-        ctx!.fillRect(0, 0, W, H);
-      });
+      // These 5 full-canvas radial-gradient fills are the most expensive
+      // part of this scene (each is a full fillRect at canvas resolution).
+      // They change slowly (a slow sine pulse), so redrawing them every
+      // frame is wasted work that can starve the main thread during page
+      // load/hydration on slower machines. Throttling to every 3rd frame
+      // is visually imperceptible but cuts this scene's per-frame canvas
+      // cost roughly 3x on the heaviest part of the draw.
+      frameCount++;
+      if (frameCount % 3 === 0) {
+        ([
+          [0.42, 0.35, "rgba(255,0,200,", 0.13],
+          [0.65, 0.6, "rgba(0,240,255,", 0.11],
+          [0.85, 0.2, "rgba(255,200,0,", 0.1],
+          [0.55, 0.85, "rgba(180,0,255,", 0.08],
+          [0.95, 0.7, "rgba(255,100,0,", 0.07],
+        ] as [number, number, string, number][]).forEach(([ex, ey, col, a]) => {
+          const pulse = a + Math.sin(t * 0.4 + ex * 5) * 0.03;
+          const g = ctx!.createRadialGradient(W * ex, H * ey, 0, W * ex, H * ey, H * 0.7);
+          g.addColorStop(0, col + pulse + ")");
+          g.addColorStop(1, col + "0)");
+          ctx!.fillStyle = g;
+          ctx!.fillRect(0, 0, W, H);
+        });
+      }
 
       t += 0.016;
       raf = requestAnimationFrame(draw);

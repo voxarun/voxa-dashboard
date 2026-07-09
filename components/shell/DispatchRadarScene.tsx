@@ -19,7 +19,42 @@ export function DispatchRadarScene() {
     let W = 0,
       H = 0,
       t = 0,
-      raf = 0;
+      raf = 0,
+      frameCount = 0;
+
+    // The 3 ambient radial-gradient glows below barely change frame to
+    // frame (their only motion is a slow sine pulse), but re-rendering 3
+    // full-canvas gradient fills every single frame was heavy enough to
+    // compete with page hydration on load and make the hero feel stuck on
+    // slower machines. They're now painted onto a small offscreen canvas
+    // that's refreshed every few frames instead of every frame, and the
+    // main draw loop just blits it in one cheap drawImage call.
+    const ambientCanvas = document.createElement("canvas");
+    const ambientCtx = ambientCanvas.getContext("2d");
+
+    function paintAmbient(cx: number, cy: number, mr: number) {
+      if (!ambientCtx) return;
+      ambientCtx.clearRect(0, 0, W, H);
+
+      const atm = ambientCtx.createRadialGradient(cx, cy, 0, cx, cy, mr * 2.4);
+      atm.addColorStop(0, `rgba(255,140,0,${0.16 + Math.sin(t * 0.3) * 0.03})`);
+      atm.addColorStop(0.45, "rgba(180,70,0,0.09)");
+      atm.addColorStop(1, "rgba(0,0,0,0)");
+      ambientCtx.fillStyle = atm;
+      ambientCtx.fillRect(0, 0, W, H);
+
+      const atm2 = ambientCtx.createRadialGradient(W, H * 0.3, 0, W, H * 0.3, W * 0.6);
+      atm2.addColorStop(0, "rgba(0,110,220,0.09)");
+      atm2.addColorStop(1, "rgba(0,0,0,0)");
+      ambientCtx.fillStyle = atm2;
+      ambientCtx.fillRect(0, 0, W, H);
+
+      const atm3 = ambientCtx.createRadialGradient(W * 0.35, H * 0.85, 0, W * 0.35, H * 0.85, W * 0.4);
+      atm3.addColorStop(0, "rgba(0,220,140,0.06)");
+      atm3.addColorStop(1, "rgba(0,0,0,0)");
+      ambientCtx.fillStyle = atm3;
+      ambientCtx.fillRect(0, 0, W, H);
+    }
 
     const BLIPS = [
       { r: 0.32, a: 0.85, label: "Booking", trail: [] as { x: number; y: number; a: number }[] },
@@ -43,6 +78,8 @@ export function DispatchRadarScene() {
     function init() {
       W = canvas!.width = host!.offsetWidth;
       H = canvas!.height = host!.offsetHeight;
+      ambientCanvas.width = W;
+      ambientCanvas.height = H;
       stars = Array.from({ length: 220 }, () => ({
         x: Math.random() * W,
         y: Math.random() * H,
@@ -67,24 +104,9 @@ export function DispatchRadarScene() {
       const { cx, cy } = radarCenter();
       const mr = maxR();
 
-      const atm = ctx!.createRadialGradient(cx, cy, 0, cx, cy, mr * 2.4);
-      atm.addColorStop(0, `rgba(255,140,0,${0.16 + Math.sin(t * 0.3) * 0.03})`);
-      atm.addColorStop(0.45, "rgba(180,70,0,0.09)");
-      atm.addColorStop(1, "rgba(0,0,0,0)");
-      ctx!.fillStyle = atm;
-      ctx!.fillRect(0, 0, W, H);
-
-      const atm2 = ctx!.createRadialGradient(W, H * 0.3, 0, W, H * 0.3, W * 0.6);
-      atm2.addColorStop(0, "rgba(0,110,220,0.09)");
-      atm2.addColorStop(1, "rgba(0,0,0,0)");
-      ctx!.fillStyle = atm2;
-      ctx!.fillRect(0, 0, W, H);
-
-      const atm3 = ctx!.createRadialGradient(W * 0.35, H * 0.85, 0, W * 0.35, H * 0.85, W * 0.4);
-      atm3.addColorStop(0, "rgba(0,220,140,0.06)");
-      atm3.addColorStop(1, "rgba(0,0,0,0)");
-      ctx!.fillStyle = atm3;
-      ctx!.fillRect(0, 0, W, H);
+      frameCount++;
+      if (frameCount % 5 === 0 || frameCount === 1) paintAmbient(cx, cy, mr);
+      if (ambientCtx) ctx!.drawImage(ambientCanvas, 0, 0);
 
       stars.forEach((s) => {
         const a = (Math.sin(t * s.sp + s.ph) * 0.4 + 0.6) * 0.75;
