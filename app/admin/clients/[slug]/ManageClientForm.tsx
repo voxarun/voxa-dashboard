@@ -10,6 +10,7 @@ type Client = {
   plan_tier: string;
   online_ordering_enabled: boolean;
   is_open: boolean;
+  n8n_webhook_url: string | null;
 };
 
 const fieldStyle: React.CSSProperties = {
@@ -26,6 +27,7 @@ export function ManageClientForm({ client, ownerId, ownerEmail }: { client: Clie
   const [planTier, setPlanTier] = useState(client.plan_tier);
   const [onlineOrdering, setOnlineOrdering] = useState(client.online_ordering_enabled);
   const [isOpen, setIsOpen] = useState(client.is_open);
+  const [n8nWebhookUrl, setN8nWebhookUrl] = useState(client.n8n_webhook_url ?? "");
   const [saving, startSave] = useTransition();
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
@@ -40,6 +42,7 @@ export function ManageClientForm({ client, ownerId, ownerEmail }: { client: Clie
         plan_tier: planTier,
         online_ordering_enabled: onlineOrdering,
         is_open: isOpen,
+        n8n_webhook_url: n8nWebhookUrl.trim() || null,
       });
       setSaveMsg(res.ok ? "Saved." : `Error: ${res.error}`);
     });
@@ -80,6 +83,16 @@ export function ManageClientForm({ client, ownerId, ownerEmail }: { client: Clie
           <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--t2)" }}>
             <input type="checkbox" checked={isOpen} onChange={(e) => setIsOpen(e.target.checked)} />
             Currently open for business
+          </label>
+          <label style={{ display: "grid", gap: 5 }}>
+            <span style={{ fontSize: 11, color: "var(--t2)" }}>n8n webhook URL (blank = automation off for this client)</span>
+            <input
+              type="text"
+              placeholder="https://voxarun.app.n8n.cloud/webhook/..."
+              value={n8nWebhookUrl}
+              onChange={(e) => setN8nWebhookUrl(e.target.value)}
+              style={fieldStyle}
+            />
           </label>
           <button type="button" className="btn p" disabled={saving} onClick={save} style={{ width: "fit-content" }}>
             {saving ? "Saving…" : "Save changes"}

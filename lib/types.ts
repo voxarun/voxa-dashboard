@@ -20,5 +20,6 @@ export type Client = {
   plan_tier: "basic" | "pro" | "empire";
   owner_phone: string | null;
   brand_color: string;
+  n8n_webhook_url: string | null;
   created_at: string;
 };

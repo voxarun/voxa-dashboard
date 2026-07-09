@@ -16,7 +16,7 @@ async function requireAdmin() {
 export async function updateClientSettings(
   clientId: string,
   slug: string,
-  settings: { plan_tier: string; online_ordering_enabled: boolean; is_open: boolean }
+  settings: { plan_tier: string; online_ordering_enabled: boolean; is_open: boolean; n8n_webhook_url: string | null }
 ) {
   await requireAdmin();
   const supabase = await createServerSupabase();

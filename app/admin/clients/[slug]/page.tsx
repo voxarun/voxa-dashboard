@@ -16,6 +16,7 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
 
   const isTaxi = client.data_project === "taxi";
   const failedOrErrored = rows.filter((r) => ["failed", "error", "cancelled"].includes(String(r.status ?? "")));
+  const n8nConfigured = Boolean(client.n8n_webhook_url && client.n8n_webhook_url.trim());
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -29,6 +30,18 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
         </div>
       </div>
 
+      {!n8nConfigured && (
+        <div
+          className="rounded-2xl border p-4 text-sm"
+          style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.06)", color: "var(--red)", marginBottom: 20 }}
+        >
+          <strong>n8n not connected for this client.</strong> clients.n8n_webhook_url is empty, so orders/bookings
+          save to Supabase fine but SMS, the kitchen alert{isTaxi ? "" : ", and PrintNode receipts"} silently
+          don&apos;t fire. Set the webhook URL for this client to turn automation on — the owner sees a matching
+          notice on their dashboard.
+        </div>
+      )}
+
       <ManageClientForm
         client={{
           id: client.id,
@@ -37,6 +50,7 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
           plan_tier: client.plan_tier,
           online_ordering_enabled: client.online_ordering_enabled,
           is_open: client.is_open,
+          n8n_webhook_url: client.n8n_webhook_url,
         }}
         ownerId={owner?.id ?? null}
         ownerEmail={owner?.email ?? null}

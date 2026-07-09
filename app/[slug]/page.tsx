@@ -85,8 +85,21 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
     },
   ];
 
+  const n8nConfigured = Boolean(client.n8n_webhook_url && client.n8n_webhook_url.trim());
+
   return (
     <div>
+      {!n8nConfigured && (
+        <div
+          className="rounded-2xl border p-4 text-sm"
+          style={{ borderColor: "rgba(255,176,32,0.35)", background: "rgba(255,176,32,0.08)", color: "var(--amber)", marginBottom: 16 }}
+        >
+          <strong>Automation isn&apos;t fully connected yet.</strong> Orders are saving correctly, but SMS
+          confirmations, the kitchen alert{isTaxi ? "" : " and receipt printing"} won&apos;t fire until Voxa
+          finishes connecting your automation. This doesn&apos;t affect anything customers see — reach out to
+          Voxa to get this switched on.
+        </div>
+      )}
       <Hero
         eyebrow={`${client.name} · Command Centre`}
         headline={isTaxi ? "Bradford's smartest" : `${client.name.split(" ")[0]}'s smartest`}
