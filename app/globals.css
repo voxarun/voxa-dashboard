@@ -680,6 +680,7 @@ body { font-family: 'Inter', sans-serif; color: var(--t1); }
   }
 
   .bot, .plans { grid-template-columns: 1fr; }
+  .ag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 640px) {
