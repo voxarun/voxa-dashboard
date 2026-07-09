@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getClientBySlug, getRecentOrders } from "@/lib/dashboard-data";
+import { getClientBySlug, getRecentOrders, summarizeOrders } from "@/lib/dashboard-data";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Topbar } from "@/components/shell/Topbar";
@@ -19,7 +19,7 @@ export default async function ClientLayout({
 
   const isTaxi = client.data_project === "taxi";
   const { rows } = await getRecentOrders(client, 50);
-  const newCount = rows.filter((r) => String(r.status ?? "new") === "new").length;
+  const { newCount } = summarizeOrders(rows, client);
 
   const sections: NavSection[] = [
     {
