@@ -11,6 +11,7 @@ export function AdminHeroScene({
 
   return (
     <div className="ahs">
+      <div className="ahs-ambient" />
       <div className="ahs-rays" />
       <div className="ahs-orbit ahs-orbit-2">
         <span className="ahs-orbit-dot" />

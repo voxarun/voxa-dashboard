@@ -819,13 +819,20 @@ body { font-family: 'Inter', sans-serif; color: var(--t1); }
 /* ── ADMIN HERO SCENE — cinematic animated brain ── */
 .ahs { position: absolute; inset: 0; }
 .ahs-rays {
-  position: absolute; top: 50%; right: 18%; width: 900px; height: 900px;
+  position: absolute; top: 50%; right: 12%; width: 1100px; height: 1100px;
   transform: translate(50%, -50%);
-  background: repeating-conic-gradient(from 0deg, rgba(0,148,255,0.10) 0deg 2deg, transparent 2deg 14deg);
+  background: repeating-conic-gradient(from 0deg, rgba(0,170,255,0.16) 0deg 2deg, transparent 2deg 12deg);
   border-radius: 50%;
   animation: ahs-ray-spin 60s linear infinite;
-  mask-image: radial-gradient(circle, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.35) 45%, transparent 72%);
-  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.35) 45%, transparent 72%);
+  mask-image: radial-gradient(circle, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 45%, transparent 74%);
+  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 45%, transparent 74%);
+}
+.ahs-ambient {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 90% at 78% 50%, rgba(0,148,255,0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 70% at 45% 80%, rgba(124,58,237,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 95% 15%, rgba(0,229,255,0.10) 0%, transparent 60%);
 }
 @keyframes ahs-ray-spin { to { transform: translate(50%, -50%) rotate(360deg); } }
 
@@ -834,8 +841,8 @@ body { font-family: 'Inter', sans-serif; color: var(--t1); }
   transform: translate(50%, -50%);
 }
 .ahs-sphere-halo {
-  position: absolute; inset: -60px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,180,255,0.22) 0%, rgba(0,148,255,0.08) 45%, transparent 72%);
+  position: absolute; inset: -90px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,190,255,0.32) 0%, rgba(0,148,255,0.14) 45%, transparent 74%);
   animation: ahs-halo-pulse 4s ease-in-out infinite;
 }
 @keyframes ahs-halo-pulse { 0%,100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }

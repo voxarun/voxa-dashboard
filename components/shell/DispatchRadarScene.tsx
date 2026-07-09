@@ -43,7 +43,7 @@ export function DispatchRadarScene() {
     function init() {
       W = canvas!.width = host!.offsetWidth;
       H = canvas!.height = host!.offsetHeight;
-      stars = Array.from({ length: 120 }, () => ({
+      stars = Array.from({ length: 220 }, () => ({
         x: Math.random() * W,
         y: Math.random() * H,
         r: Math.random() * 0.8 + 0.1,
@@ -53,10 +53,10 @@ export function DispatchRadarScene() {
     }
 
     function radarCenter() {
-      return { cx: W * 0.62, cy: H * 0.5 };
+      return { cx: W * 0.6, cy: H * 0.5 };
     }
     function maxR() {
-      return Math.min(H * 0.46, W * 0.3);
+      return Math.min(H * 0.48, W * 0.4);
     }
 
     function draw() {
@@ -67,24 +67,30 @@ export function DispatchRadarScene() {
       const { cx, cy } = radarCenter();
       const mr = maxR();
 
-      const atm = ctx!.createRadialGradient(cx, cy, 0, cx, cy, mr * 1.8);
-      atm.addColorStop(0, `rgba(255,120,0,${0.07 + Math.sin(t * 0.3) * 0.02})`);
-      atm.addColorStop(0.5, "rgba(100,40,0,0.04)");
+      const atm = ctx!.createRadialGradient(cx, cy, 0, cx, cy, mr * 2.4);
+      atm.addColorStop(0, `rgba(255,140,0,${0.16 + Math.sin(t * 0.3) * 0.03})`);
+      atm.addColorStop(0.45, "rgba(180,70,0,0.09)");
       atm.addColorStop(1, "rgba(0,0,0,0)");
       ctx!.fillStyle = atm;
       ctx!.fillRect(0, 0, W, H);
 
-      const atm2 = ctx!.createRadialGradient(W, H * 0.3, 0, W, H * 0.3, W * 0.5);
-      atm2.addColorStop(0, "rgba(0,80,180,0.05)");
+      const atm2 = ctx!.createRadialGradient(W, H * 0.3, 0, W, H * 0.3, W * 0.6);
+      atm2.addColorStop(0, "rgba(0,110,220,0.09)");
       atm2.addColorStop(1, "rgba(0,0,0,0)");
       ctx!.fillStyle = atm2;
       ctx!.fillRect(0, 0, W, H);
 
+      const atm3 = ctx!.createRadialGradient(W * 0.35, H * 0.85, 0, W * 0.35, H * 0.85, W * 0.4);
+      atm3.addColorStop(0, "rgba(0,220,140,0.06)");
+      atm3.addColorStop(1, "rgba(0,0,0,0)");
+      ctx!.fillStyle = atm3;
+      ctx!.fillRect(0, 0, W, H);
+
       stars.forEach((s) => {
-        const a = (Math.sin(t * s.sp + s.ph) * 0.35 + 0.55) * 0.5;
+        const a = (Math.sin(t * s.sp + s.ph) * 0.4 + 0.6) * 0.75;
         ctx!.beginPath();
-        ctx!.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(255,220,150,${a})`;
+        ctx!.arc(s.x, s.y, s.r * 1.3, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(255,225,160,${a})`;
         ctx!.fill();
       });
 
@@ -116,6 +122,7 @@ export function DispatchRadarScene() {
       const ang1 = t * 0.7;
       ctx!.save();
       ctx!.translate(cx, cy);
+      ctx!.rotate(ang1);
       const sweepSteps = 32;
       for (let i = 0; i < sweepSteps; i++) {
         const a0 = -(i / sweepSteps) * Math.PI * 0.65;

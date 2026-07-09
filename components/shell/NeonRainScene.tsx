@@ -102,7 +102,7 @@ export function NeonRainScene() {
 
       cols.forEach((col) => {
         const brightness = 1 - col.depth * 0.55;
-        const alpha = 0.25 + brightness * 0.5;
+        const alpha = 0.34 + brightness * 0.56;
         const baseCol = COLS[col.ci];
         const glowCol = GLOW[col.ci];
 
@@ -171,12 +171,14 @@ export function NeonRainScene() {
       });
 
       ([
-        [0.55, 0.35, "rgba(255,0,200,", 0.06],
-        [0.75, 0.6, "rgba(0,240,255,", 0.05],
-        [0.9, 0.2, "rgba(255,200,0,", 0.04],
+        [0.42, 0.35, "rgba(255,0,200,", 0.13],
+        [0.65, 0.6, "rgba(0,240,255,", 0.11],
+        [0.85, 0.2, "rgba(255,200,0,", 0.1],
+        [0.55, 0.85, "rgba(180,0,255,", 0.08],
+        [0.95, 0.7, "rgba(255,100,0,", 0.07],
       ] as [number, number, string, number][]).forEach(([ex, ey, col, a]) => {
-        const pulse = a + Math.sin(t * 0.4 + ex * 5) * 0.02;
-        const g = ctx!.createRadialGradient(W * ex, H * ey, 0, W * ex, H * ey, H * 0.45);
+        const pulse = a + Math.sin(t * 0.4 + ex * 5) * 0.03;
+        const g = ctx!.createRadialGradient(W * ex, H * ey, 0, W * ex, H * ey, H * 0.7);
         g.addColorStop(0, col + pulse + ")");
         g.addColorStop(1, col + "0)");
         ctx!.fillStyle = g;
