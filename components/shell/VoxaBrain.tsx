@@ -10,10 +10,12 @@ export function VoxaBrain({
   activity,
   tickerItems,
   brainLabel,
+  activityHeading = "Live Activity Across All Clients",
 }: {
   activity: ActivityItem[];
   tickerItems: { text: string; color: string }[];
   brainLabel: string;
+  activityHeading?: string;
 }) {
   return (
     <div className="running-panel">
@@ -38,7 +40,7 @@ export function VoxaBrain({
         </div>
 
         <div className="activity-col">
-          <div className="ac-head">Live Activity Across All Clients</div>
+          <div className="ac-head">{activityHeading}</div>
           <div className="activity-list">
             {activity.length === 0 && (
               <div style={{ fontSize: 12, color: "var(--t3)" }}>No activity yet — the feed fills in as calls come in.</div>

@@ -52,6 +52,19 @@ export function summarizeOrders(rows: Record<string, unknown>[], client: Client)
   return { total, revenue, newCount, onlineCount };
 }
 
+/** Raw recent call_logs rows for a client — used to build the real
+ * calls-per-day chart on the owner dashboard. */
+export async function getRecentCallLogs(client: Client, limit = 200) {
+  const { client: db } = getDataProjectClient(client.data_project);
+  const { data, error } = await db
+    .from("call_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return { rows: [] as Record<string, unknown>[], error: error.message };
+  return { rows: (data ?? []) as Record<string, unknown>[], error: null };
+}
+
 /** Call volume + last-call recency from call_logs — used both on the
  * owner dashboard and as the admin health signal for this client. */
 export async function getCallHealth(client: Client) {
