@@ -1,57 +1,42 @@
-# Voxa Dashboard — AI Command Centre
+# Voxa Dashboard
 
-Multi-tenant dashboard for Voxa AI takeaway phone agent. Built with Next.js 14, Tailwind CSS, Supabase, and Recharts.
+Multi-tenant client + internal admin dashboard for the Voxa platform.
 
-## Quick Start
+- `dashboard.voxa.run/{slug}` — owner view for one client (KPIs, orders/bookings, chef/dispatch view, driver view)
+- `dashboard.voxa.run/admin` (mapped from `admin.voxa.run`) — Voxa-internal only, invisible to any client login
+
+## Architecture
+
+One login system for every client, backed by Supabase Auth. `profiles.role` decides what a
+logged-in user sees:
+
+| Role | Lands on | Sees |
+|---|---|---|
+| `owner` | `/{slug}` | Their own client's KPIs, orders/bookings, everything |
+| `chef` | `/{slug}/chef` | Active orders only — no prices, no customer contact info |
+| `driver` | `/{slug}/driver` | Active deliveries — address + first name only |
+| `voxa_admin` | `/admin` | Every client, platform health, no-code onboarding |
+
+`clients` and `profiles` live in the VOXA TAKEAWAY Supabase project (the cross-vertical "home
+base"). Each client's actual orders/bookings live in whichever Supabase project their
+`data_project` column points to (`takeaway` or `taxi` today) — see `lib/data-projects.ts`.
+
+## Local setup
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Set up environment variables
 cp .env.local.example .env.local
-# Edit .env.local and add your Supabase anon key
-
-# 3. Run dev server
+# fill in the two anon keys
+npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — it redirects to `/dashboard`.
+## Known v1 limitations (see the Voxa gap-analysis doc for the full list)
 
-## Environment Variables
-
-| Variable | Where to find it |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Already filled in — your VOXA TAKEAWAY project |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Project Settings → API → anon/public key |
-
-## Pages
-
-| Route | View | Description |
-|---|---|---|
-| `/dashboard` | Owner | Command Centre — KPIs, charts, live orders, chef/driver panels |
-| `/dashboard/orders` | Owner | Full order management with status filters |
-| `/dashboard/chef` | Chef | Kitchen queue — active orders with prep timers |
-| `/dashboard/driver` | Driver | Delivery jobs — address + first name only |
-
-## What's Live vs Mocked
-
-**Live from Supabase:**
-- All orders data (the `orders` table)
-- Real-time updates via Supabase Realtime (websocket)
-- Status updates (cooking / ready / delivered) write back to DB
-
-**Mocked (pending new tables from spec):**
-- Call logs / live call feed (needs `call_logs` table)
-- AI Insights are computed from order data, not an `ai_insights` table
-- Agent uptime stats (needs `system_health` table)
-- Prep/delivery time KPIs (needs `cooking_started_at`, `ready_at` columns)
-
-## Tech Stack
-
-- **Next.js 14** (App Router)
-- **Tailwind CSS** (utility classes + CSS custom properties)  
-- **Supabase JS** (data + real-time)
-- **Recharts** (bar chart on dashboard)
-- **Lucide React** (icons)
-- **date-fns** (date formatting)
+- Adding a client's **business record** is no-code (Admin → Add New Client). Provisioning their
+  **login** is still a manual step in Supabase Auth — deliberately not automated with a
+  service-role key from this app.
+- "Voice Agent Healthy" on the admin overview is derived from `call_logs` recency (a call in the
+  last 30 days), not a live Vapi/Twilio/n8n status API poll.
+- A brand-new vertical (salon, law firm, ...) needs its own Supabase project provisioned before
+  it can go live — the onboarding form can only point a new client at the two data projects that
+  already exist.

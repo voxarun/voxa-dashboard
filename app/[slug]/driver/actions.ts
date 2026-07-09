@@ -1,0 +1,15 @@
+"use server";
+
+import { getClientBySlug } from "@/lib/dashboard-data";
+import { getDataProjectClient } from "@/lib/data-projects";
+
+export async function updateDeliveryStatus(slug: string, orderId: string, status: string) {
+  const client = await getClientBySlug(slug);
+  if (!client) return { ok: false, error: "Client not found" };
+
+  const { client: db, ordersTable } = getDataProjectClient(client.data_project);
+  const { error } = await db.from(ordersTable).update({ status }).eq("id", orderId);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
