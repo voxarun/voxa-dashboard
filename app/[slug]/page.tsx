@@ -5,6 +5,8 @@ import { DispatchRadarScene } from "@/components/shell/DispatchRadarScene";
 import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
 import { VoxaBrain } from "@/components/shell/VoxaBrain";
 import { ChartsSection } from "@/components/shell/ChartsSection";
+import { AgentsGrid } from "@/components/shell/AgentsGrid";
+import { PlansSection } from "@/components/shell/PlansSection";
 import { DataTable } from "@/components/shell/DataTable";
 import { BottomGrid } from "@/components/shell/BottomGrid";
 import { FleetSection } from "@/components/shell/FleetSection";
@@ -132,6 +134,37 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
       <div id="dispatch">
         <BottomGrid rows={rows} isTaxi={isTaxi} kpi={kpi} callHealth={callHealth} />
       </div>
+
+      <div className="feed-grid" style={{ marginBottom: 20 }}>
+        <div className="card">
+          <div className="ch">
+            <div>
+              <div className="ct">📞 Live Call Feed</div>
+              <div className="cs">Most recent activity</div>
+            </div>
+            <div className="live-chip">
+              <div className="pulse-dot" style={{ width: 5, height: 5 }} />
+              Live
+            </div>
+          </div>
+          {activity.length === 0 && <div style={{ fontSize: 12, color: "var(--t3)" }}>No activity yet.</div>}
+          {activity.slice(0, 5).map((a, i) => (
+            <div key={i} className="fi">
+              <div className="fi-dot" style={{ background: a.color }} />
+              <div>
+                <div className="fi-evt">
+                  <strong>{a.what}</strong> — {a.how}
+                </div>
+                <div className="fi-time">{a.when}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <AgentsGrid rows={rows} callHealthy={callHealth.healthy} isTaxi={isTaxi} />
+      </div>
+
+      <PlansSection currentTier={client.plan_tier} />
     </div>
   );
 }
