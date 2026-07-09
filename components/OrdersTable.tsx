@@ -41,7 +41,7 @@ export function OrdersTable({ rows, isTaxi }: { rows: Row[]; isTaxi: boolean }) 
               <td className="px-4 py-2.5">{String(r.status ?? "new")}</td>
               <td className="px-4 py-2.5">{isTaxi ? "" : `£${r.total ?? "0.00"}`}</td>
               <td className="px-4 py-2.5" style={{ color: "var(--t2)" }}>
-                {r.created_at ? new Date(String(r.created_at)).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}
+                {r.created_at ? new Date(String(r.created_at)).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" }) : "—"}
               </td>
             </tr>
           ))}

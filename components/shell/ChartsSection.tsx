@@ -18,7 +18,7 @@ export function ChartsSection({ rows, callRows, isTaxi }: { rows: Row[]; callRow
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    days.push({ label: d.toLocaleDateString("en-GB", { weekday: "short" }), key: dayKey(d) });
+    days.push({ label: d.toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" }), key: dayKey(d) });
   }
   const orderCounts = new Map<string, number>();
   for (const r of rows) {

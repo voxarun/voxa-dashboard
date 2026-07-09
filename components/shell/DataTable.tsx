@@ -8,7 +8,7 @@ function fmtTime(v: unknown): string {
   if (!v) return "—";
   const d = new Date(String(v));
   if (isNaN(d.getTime())) return String(v);
-  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
 function shortId(id: unknown, prefix: string): string {

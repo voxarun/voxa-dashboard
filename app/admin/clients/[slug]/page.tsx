@@ -83,7 +83,7 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
                 <strong>{String(r.customer_name ?? "No name")}</strong> · {String(r.status ?? "new")}
               </div>
               <div className="fi-time">
-                {r.created_at ? new Date(String(r.created_at)).toLocaleString("en-GB") : "—"}
+                {r.created_at ? new Date(String(r.created_at)).toLocaleString("en-GB", { timeZone: "Europe/London" }) : "—"}
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ export function Topbar({ title, notifCount = 0, avatarInitial }: { title: string
   useEffect(() => {
     const update = () =>
       setTime(
-        new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/London" })
       );
     update();
     const id = setInterval(update, 1000);

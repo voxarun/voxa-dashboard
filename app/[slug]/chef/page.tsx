@@ -31,7 +31,7 @@ export default async function ChefPage({ params }: { params: Promise<{ slug: str
                 {isTaxi ? String(r.pickup_address ?? "—") : String(r.order_type ?? "—").toUpperCase()}
               </span>
               <span className="text-xs" style={{ color: "var(--t3)" }}>
-                {r.created_at ? new Date(String(r.created_at)).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : ""}
+                {r.created_at ? new Date(String(r.created_at)).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" }) : ""}
               </span>
             </div>
             <div className="mb-3 text-sm">
