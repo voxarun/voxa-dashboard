@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllClients, getRecentOrders, getCallHealth, summarizeOrders } from "@/lib/dashboard-data";
-import { KpiCard } from "@/components/KpiCard";
+import { Hero } from "@/components/shell/Hero";
+import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
 
 export default async function AdminOverviewPage() {
   const clients = await getAllClients();
@@ -15,73 +16,133 @@ export default async function AdminOverviewPage() {
 
   const totalClients = clients.length;
   const healthyCount = rows.filter((r) => r.health.healthy).length;
-  const totalCallsToday = rows.reduce((sum, r) => sum + r.health.totalCalls, 0);
+  const totalCalls = rows.reduce((sum, r) => sum + r.health.totalCalls, 0);
+  const liveOrdering = clients.filter((c) => c.online_ordering_enabled).length;
+
+  const tickerItems = rows
+    .flatMap((r) => (r.health.totalCalls > 0 ? [`• ${r.client.name} — ${r.health.totalCalls} calls logged`] : []))
+    .slice(0, 10);
+
+  const tiles: KpiTile[] = [
+    { icon: "🏢", tone: "kb", label: "Onboarded Clients", value: String(totalClients) },
+    {
+      icon: "🎙️",
+      tone: healthyCount === totalClients && totalClients > 0 ? "kg" : "ka",
+      label: "Voice Agent Healthy",
+      value: `${healthyCount} / ${totalClients}`,
+    },
+    { icon: "📞", tone: "kp", label: "Calls Logged (recent)", value: String(totalCalls) },
+    { icon: "🌐", tone: "kg", label: "Online Ordering Live", value: `${liveOrdering} / ${totalClients}` },
+  ];
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <h1 className="mb-1 text-xl font-extrabold">All Clients</h1>
-      <p className="mb-6 text-sm" style={{ color: "var(--t2)" }}>
-        Platform-wide view. Nothing on this page is visible to any client.
-      </p>
+    <div>
+      <Hero
+        eyebrow="Voxa Platform · Admin"
+        headline="Every client."
+        headlineEm="One view."
+        statusLabel="Voxa AI"
+        statusValue="Monitoring live"
+        tickerItems={tickerItems}
+      />
 
-      <div className="mb-6 grid grid-cols-3 gap-3">
-        <KpiCard label="Onboarded Clients" value={String(totalClients)} />
-        <KpiCard label="Voice Agent Healthy" value={`${healthyCount} / ${totalClients}`} accent={healthyCount === totalClients ? "var(--green)" : "var(--amber)"} />
-        <KpiCard label="Calls Logged (recent)" value={String(totalCallsToday)} accent="var(--cyan)" />
+      <KpiGrid tiles={tiles} />
+
+      <div style={{ marginBottom: 20 }} id="health">
+        <div className="ot-hdr">
+          <div>
+            <div className="ot-title">All Clients</div>
+            <div className="ot-sub">Platform-wide · nothing here is visible to any client</div>
+          </div>
+        </div>
+        <div className="ot">
+          <div className="thead" style={{ gridTemplateColumns: "1.2fr 100px 100px 100px 140px 100px 110px" }}>
+            <div className="th">Client</div>
+            <div className="th">Industry</div>
+            <div className="th">Plan</div>
+            <div className="th">Status</div>
+            <div className="th">Voice Agent</div>
+            <div className="th">Orders</div>
+            <div className="th"></div>
+          </div>
+          {rows.map(({ client, kpi, health }) => (
+            <div key={client.id} className="tr" style={{ gridTemplateColumns: "1.2fr 100px 100px 100px 140px 100px 110px" }}>
+              <div className="td br">{client.name}</div>
+              <div className="td" style={{ textTransform: "capitalize" }}>{client.industry}</div>
+              <div className="td mn" style={{ textTransform: "uppercase" }}>{client.plan_tier}</div>
+              <div className="td">
+                <span className={`chip ${client.online_ordering_enabled ? "cd" : "ca"}`}>
+                  {client.online_ordering_enabled ? "Live" : "Disabled"}
+                </span>
+              </div>
+              <div className="td">
+                <span className={`chip ${health.healthy ? "cd" : "ca"}`}>
+                  {health.healthy ? "Active" : "No recent calls"}
+                </span>
+              </div>
+              <div className="td">{kpi.total}</div>
+              <div className="td">
+                <Link href={`/${client.slug}`} className="btn" style={{ textDecoration: "none" }}>
+                  View →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--b1)" }}>
-        <table className="w-full text-left text-[13px]">
-          <thead>
-            <tr style={{ background: "var(--s2)" }}>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}>Client</th>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}>Industry</th>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}>Plan</th>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}>Status</th>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}>Voice Agent</th>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}>Orders (recent)</th>
-              <th className="px-4 py-2.5 font-semibold" style={{ color: "var(--t3)" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ client, kpi, health }) => (
-              <tr key={client.id} className="border-t" style={{ borderColor: "var(--b1)" }}>
-                <td className="px-4 py-2.5 font-semibold">{client.name}</td>
-                <td className="px-4 py-2.5 capitalize" style={{ color: "var(--t2)" }}>{client.industry}</td>
-                <td className="px-4 py-2.5 uppercase" style={{ color: "var(--cyan)" }}>{client.plan_tier}</td>
-                <td className="px-4 py-2.5">
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                    style={{
-                      background: client.online_ordering_enabled ? "rgba(0,230,118,0.12)" : "rgba(255,68,68,0.12)",
-                      color: client.online_ordering_enabled ? "var(--green)" : "var(--red)",
-                    }}
-                  >
-                    {client.online_ordering_enabled ? "Live" : "Disabled"}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span
-                    className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                    style={{
-                      background: health.healthy ? "rgba(0,230,118,0.12)" : "rgba(255,171,0,0.12)",
-                      color: health.healthy ? "var(--green)" : "var(--amber)",
-                    }}
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: health.healthy ? "var(--green)" : "var(--amber)" }} />
-                    {health.healthy ? "Active" : "No recent calls"}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">{kpi.total}</td>
-                <td className="px-4 py-2.5">
-                  <Link href={`/${client.slug}`} className="text-xs underline" style={{ color: "var(--blue2)" }}>
-                    View dashboard
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bot" style={{ gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}>
+        <div className="card">
+          <div className="ch">
+            <div>
+              <div className="ct">Client Status Breakdown</div>
+              <div className="cs">Live snapshot</div>
+            </div>
+          </div>
+          <div className="rev-stat">
+            <span className="rev-label">Open now</span>
+            <span className="rev-val a">{clients.filter((c) => c.is_open).length} / {totalClients}</span>
+          </div>
+          <div className="rev-stat">
+            <span className="rev-label">Online ordering enabled</span>
+            <span className="rev-val a">{liveOrdering} / {totalClients}</span>
+          </div>
+          <div className="rev-stat">
+            <span className="rev-label">Voice agent healthy</span>
+            <span className="rev-val a">{healthyCount} / {totalClients}</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="ch">
+            <div>
+              <div className="ct">AI Insights</div>
+              <div className="cs">Generated from live data</div>
+            </div>
+          </div>
+          {healthyCount < totalClients && totalClients > 0 && (
+            <div className="ins">
+              <div className="ins-ic">⚠️</div>
+              <div className="ins-tx">
+                <strong>{totalClients - healthyCount}</strong> client(s) have no calls logged in the last 30 days — worth a check-in.
+              </div>
+            </div>
+          )}
+          {totalCalls > 0 && (
+            <div className="ins">
+              <div className="ins-ic">📞</div>
+              <div className="ins-tx">
+                <strong>{totalCalls}</strong> total calls logged across the platform, recent window.
+              </div>
+            </div>
+          )}
+          {totalClients === 0 && (
+            <div className="ins">
+              <div className="ins-ic">🧠</div>
+              <div className="ins-tx">No clients onboarded yet.</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

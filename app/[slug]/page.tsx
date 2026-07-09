@@ -1,6 +1,9 @@
 import { getClientBySlug, getRecentOrders, summarizeOrders, getCallHealth } from "@/lib/dashboard-data";
-import { KpiCard } from "@/components/KpiCard";
-import { OrdersTable } from "@/components/OrdersTable";
+import { Hero } from "@/components/shell/Hero";
+import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
+import { DataTable } from "@/components/shell/DataTable";
+import { BottomGrid } from "@/components/shell/BottomGrid";
+import { FleetSection } from "@/components/shell/FleetSection";
 import { notFound } from "next/navigation";
 
 export default async function ClientOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -8,51 +11,60 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
   const client = await getClientBySlug(slug);
   if (!client) notFound();
 
-  const [{ rows, error }, callHealth] = await Promise.all([getRecentOrders(client, 25), getCallHealth(client)]);
+  const [{ rows, error }, callHealth] = await Promise.all([getRecentOrders(client, 50), getCallHealth(client)]);
   const isTaxi = client.data_project === "taxi";
   const kpi = summarizeOrders(rows, client);
 
+  const tickerItems = rows.slice(0, 10).map((r) => {
+    const name = String(r.customer_name ?? "").trim() || "Customer";
+    const route = isTaxi
+      ? [r.pickup_address, r.destination_address].filter(Boolean).join(" → ") || "Address not provided"
+      : String(r.order_type ?? "order");
+    return `• ${name} — ${route}`;
+  });
+
+  const tiles: KpiTile[] = [
+    { icon: "📋", tone: "ka", label: isTaxi ? "Bookings (recent)" : "Orders (recent)", value: String(kpi.total) },
+    ...(!isTaxi ? [{ icon: "💰", tone: "kg" as const, label: "Revenue (recent)", value: `£${kpi.revenue.toFixed(2)}` }] : []),
+    { icon: "⚡", tone: "kb", label: "New / Unactioned", value: String(kpi.newCount) },
+    { icon: "🌐", tone: "kp", label: "From order.voxa.run", value: String(kpi.onlineCount) },
+    {
+      icon: "🎙️",
+      tone: callHealth.healthy ? "kg" : "kr",
+      label: "Voice Agent",
+      value: callHealth.healthy ? "Active" : "Idle",
+      sub: callHealth.totalCalls ? `${callHealth.totalCalls} calls logged` : "No recent calls",
+    },
+  ];
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-extrabold">{client.name}</h1>
-          <p className="text-sm" style={{ color: "var(--t2)" }}>{client.tagline}</p>
-        </div>
-        <span
-          className="rounded-full px-3 py-1 text-xs font-semibold"
-          style={{
-            background: client.is_open ? "rgba(0,230,118,0.12)" : "rgba(255,68,68,0.12)",
-            color: client.is_open ? "var(--green)" : "var(--red)",
-          }}
-        >
-          {client.is_open ? "Open" : "Closed"}
-        </span>
+    <div>
+      <Hero
+        eyebrow={`${client.name} · Command Centre`}
+        headline={isTaxi ? "Bradford's smartest" : `${client.name.split(" ")[0]}'s smartest`}
+        headlineEm={isTaxi ? "dispatcher." : "kitchen."}
+        statusLabel="Voxa AI"
+        statusValue={client.is_open ? "Live · Open" : "Live · Closed"}
+        tickerItems={tickerItems}
+      />
+
+      <KpiGrid tiles={tiles} />
+
+      {isTaxi && <FleetSection cityLabel={client.name} />}
+
+      <div style={{ marginBottom: 20 }}>
+        {error ? (
+          <div className="rounded-2xl border p-4 text-sm" style={{ borderColor: "rgba(255,68,68,0.3)", color: "var(--red)" }}>
+            Couldn&apos;t load {isTaxi ? "bookings" : "orders"}: {error}
+          </div>
+        ) : (
+          <DataTable rows={rows} isTaxi={isTaxi} />
+        )}
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard label={isTaxi ? "Bookings (recent)" : "Orders (recent)"} value={String(kpi.total)} />
-        {!isTaxi && <KpiCard label="Revenue (recent)" value={`£${kpi.revenue.toFixed(2)}`} accent="var(--green)" />}
-        <KpiCard label="New / Unactioned" value={String(kpi.newCount)} accent="var(--amber)" />
-        <KpiCard label="From order.voxa.run" value={String(kpi.onlineCount)} accent="var(--cyan)" />
-        <KpiCard
-          label="Voice Agent"
-          value={callHealth.healthy ? "Active" : "No recent calls"}
-          sub={callHealth.totalCalls ? `${callHealth.totalCalls} calls logged` : undefined}
-          accent={callHealth.healthy ? "var(--green)" : "var(--t3)"}
-        />
+      <div id="dispatch">
+        <BottomGrid rows={rows} isTaxi={isTaxi} kpi={kpi} callHealth={callHealth} />
       </div>
-
-      <h2 className="mb-3 text-sm font-bold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-        Recent {isTaxi ? "bookings" : "orders"}
-      </h2>
-      {error ? (
-        <div className="rounded-2xl border p-4 text-sm" style={{ borderColor: "rgba(255,68,68,0.3)", color: "var(--red)" }}>
-          Couldn&apos;t load {isTaxi ? "bookings" : "orders"}: {error}
-        </div>
-      ) : (
-        <OrdersTable rows={rows} isTaxi={isTaxi} />
-      )}
     </div>
   );
 }

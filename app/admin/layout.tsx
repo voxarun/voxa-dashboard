@@ -1,41 +1,55 @@
-import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { Sidebar } from "@/components/shell/Sidebar";
+import { Topbar } from "@/components/shell/Topbar";
+import type { NavSection } from "@/components/shell/types";
+
+const ADMIN_INDUSTRY_VARS: React.CSSProperties = {
+  ["--industry" as string]: "#9c6bff",
+  ["--industry2" as string]: "#c4a6ff",
+  ["--industry-bg" as string]: "rgba(156,107,255,0.08)",
+  ["--industry-border" as string]: "rgba(156,107,255,0.2)",
+};
+
+const sections: NavSection[] = [
+  {
+    title: "Overview",
+    items: [
+      { icon: "⚡", label: "All Clients", href: "/admin", active: true },
+      { icon: "➕", label: "Add New Client", href: "/admin/new-client" },
+    ],
+  },
+  {
+    title: "Platform",
+    items: [
+      { icon: "🩺", label: "System Health", href: "/admin#health" },
+      { icon: "📈", label: "Billing", disabled: true },
+      { icon: "🚨", label: "Alerts", disabled: true },
+    ],
+  },
+  {
+    title: "System",
+    items: [
+      { icon: "🔌", label: "Integrations", disabled: true },
+      { icon: "⚙️", label: "Settings", disabled: true },
+    ],
+  },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen">
-      <aside
-        className="flex h-screen w-[220px] flex-shrink-0 flex-col border-r"
-        style={{ borderColor: "var(--b1)", background: "rgba(2,5,14,0.98)" }}
-      >
-        <div className="flex items-center gap-2.5 border-b px-4 py-4" style={{ borderColor: "var(--b1)" }}>
-          <div
-            className="h-7 w-7 flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, #7c3aed, #0094ff, #00e5ff)",
-              clipPath: "polygon(50% 0%, 100% 28%, 82% 100%, 50% 76%, 18% 100%, 0% 28%)",
-            }}
-          />
-          <div>
-            <div className="text-[15px] font-extrabold leading-tight tracking-tight">Voxa Admin</div>
-            <div className="text-[10px]" style={{ color: "var(--t3)" }}>Internal — not client-visible</div>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-1 px-2.5 py-3">
-          <Link href="/admin" className="block rounded-lg px-3 py-2 text-[13px] font-medium" style={{ color: "var(--t2)" }}>
-            All Clients
-          </Link>
-          <Link href="/admin/new-client" className="block rounded-lg px-3 py-2 text-[13px] font-medium" style={{ color: "var(--t2)" }}>
-            + Add New Client
-          </Link>
-        </nav>
-
-        <div className="border-t p-3" style={{ borderColor: "var(--b1)" }}>
-          <LogoutButton />
-        </div>
-      </aside>
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <div className="dashboard-root" style={ADMIN_INDUSTRY_VARS}>
+      <Sidebar
+        clientTag="Internal"
+        clientName="Voxa Admin"
+        planLabel="Not client-visible"
+        mobileTitle="Voxa Admin"
+        sections={sections}
+        logoutSlot={<LogoutButton />}
+      />
+      <div className="main">
+        <Topbar title="Voxa Admin · Platform Overview" avatarInitial="V" />
+        <div className="content">{children}</div>
+      </div>
     </div>
   );
 }
