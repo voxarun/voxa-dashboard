@@ -51,6 +51,17 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
         statusValue={client.is_open ? "Live · Open" : "Live · Closed"}
         tickerItems={tickerItems}
         backgroundImage={heroImage}
+        stats={[
+          { value: String(kpi.total), label: isTaxi ? "Bookings" : "Orders", tone: "b" },
+          ...(!isTaxi
+            ? [{ value: `£${kpi.revenue.toFixed(0)}`, label: "Revenue", tone: "g" as const }]
+            : [{ value: String(kpi.newCount), label: "New / Unactioned", tone: "g" as const }]),
+          {
+            value: callHealth.healthy ? "Active" : "Idle",
+            label: "Voice Agent",
+            tone: callHealth.healthy ? ("p" as const) : undefined,
+          },
+        ]}
       />
 
       <KpiGrid tiles={tiles} />

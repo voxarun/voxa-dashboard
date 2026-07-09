@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+
+export type HeroStat = {
+  value: string;
+  label: string;
+  tone?: "a" | "g" | "b" | "p";
+};
 
 export function Hero({
   eyebrow,
@@ -10,6 +16,8 @@ export function Hero({
   statusValue = "Live",
   tickerItems,
   backgroundImage,
+  stats,
+  scene,
 }: {
   eyebrow: string;
   headline: string;
@@ -17,7 +25,9 @@ export function Hero({
   statusLabel?: string;
   statusValue?: string;
   tickerItems: string[];
-  backgroundImage: string;
+  backgroundImage?: string;
+  stats?: HeroStat[];
+  scene?: ReactNode;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -70,11 +80,14 @@ export function Hero({
       ref={heroRef}
       className="hero hero-v2"
       id="top"
-      style={{
-        backgroundImage: `linear-gradient(rgba(3,6,15,0.74), rgba(3,6,15,0.86)), url("${backgroundImage}")`,
-      }}
+      style={
+        backgroundImage
+          ? { backgroundImage: `linear-gradient(rgba(3,6,15,0.74), rgba(3,6,15,0.86)), url("${backgroundImage}")` }
+          : undefined
+      }
     >
       <canvas ref={canvasRef} className="hero-v2-canvas" />
+      {scene && <div className="hero-v2-scene">{scene}</div>}
       <div className="hero-v2-fade" />
 
       <div className="hero-status-widget">
@@ -99,6 +112,20 @@ export function Hero({
           <div className="bl-dot" />
           <span className="bl-txt">{statusValue}</span>
         </div>
+
+        {stats && stats.length > 0 && (
+          <div className="hero-v2-stats">
+            {stats.map((s, i) => (
+              <div key={i} style={{ display: "contents" }}>
+                {i > 0 && <div className="hs-sep" />}
+                <div className="hs">
+                  <div className={`hs-n an${s.tone ? ` ${s.tone}` : ""}`}>{s.value}</div>
+                  <div className="hs-l">{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {tickerItems.length > 0 && (

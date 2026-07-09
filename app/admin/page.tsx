@@ -4,6 +4,7 @@ import { getAllServiceHealth } from "@/lib/monitoring";
 import { Hero } from "@/components/shell/Hero";
 import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
 import { VoxaBrain } from "@/components/shell/VoxaBrain";
+import { AdminHeroScene } from "@/components/shell/AdminHeroScene";
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "—";
@@ -85,7 +86,18 @@ export default async function AdminOverviewPage() {
         statusLabel="Voxa AI"
         statusValue="Monitoring live"
         tickerItems={tickerItems.map((t) => t.text)}
-        backgroundImage="/images/hero-admin.jpg"
+        stats={[
+          { value: String(totalClients), label: "Clients", tone: "b" },
+          { value: `${healthyCount}/${totalClients}`, label: "Voice Agents", tone: "g" },
+          { value: String(totalCalls), label: "Calls Logged", tone: "p" },
+        ]}
+        scene={
+          <AdminHeroScene
+            healthyCount={healthyCount}
+            totalClients={totalClients}
+            totalCalls={totalCalls}
+          />
+        }
       />
 
       <KpiGrid tiles={tiles} />
