@@ -84,7 +84,7 @@ export function NewClientForm() {
         <input className={inputCls} style={inputStyle} value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Bradford's finest curry house" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
             Industry
@@ -112,7 +112,7 @@ export function NewClientForm() {
         of the two existing projects it&apos;s closest to for now, or ask a developer to provision a new one.
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
             Plan tier

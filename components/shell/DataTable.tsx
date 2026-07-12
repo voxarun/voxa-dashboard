@@ -43,6 +43,34 @@ function toCsvValue(v: unknown): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
+// Mobile (<=640px) responsive tweaks for THIS table only. Scoped under the
+// .ot--rt class added below so desktop/tablet layout is left untouched, and
+// scoped with two classes so it overrides the global .thead/.tr grid rules.
+const MOBILE_TABLE_CSS = `
+@media (max-width: 640px) {
+  .ot--rt { overflow-x: auto; }
+
+  /* Drop the Address/Route column (3rd) and widen Customer to reclaim it */
+  .ot--rt .thead,
+  .ot--rt .tr {
+    grid-template-columns: minmax(0, 1fr) 60px 80px 50px;
+  }
+  .ot--rt .thead .th:nth-child(3),
+  .ot--rt .tr > .td:nth-child(3) {
+    display: none;
+  }
+
+  /* Slightly smaller text + no wrapping so cells fit on one line */
+  .ot--rt .td { font-size: 11px; white-space: nowrap; }
+  .ot--rt .tr > .td:nth-child(2) { min-width: 0; overflow: hidden; }
+  .ot--rt .tr > .td:nth-child(2) > .td.br {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+`;
+
 export function DataTable({ rows, isTaxi }: { rows: Row[]; isTaxi: boolean }) {
   const [filterKey, setFilterKey] = useState("all");
   const filters = isTaxi ? TAXI_FILTERS : FOOD_FILTERS;
@@ -73,6 +101,7 @@ export function DataTable({ rows, isTaxi }: { rows: Row[]; isTaxi: boolean }) {
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: MOBILE_TABLE_CSS }} />
       <div className="ot-hdr">
         <div>
           <div className="ot-title">{isTaxi ? "Live Booking Feed" : "Live Order Feed"}</div>
@@ -98,7 +127,7 @@ export function DataTable({ rows, isTaxi }: { rows: Row[]; isTaxi: boolean }) {
         </div>
       </div>
 
-      <div className="ot" id="bookings">
+      <div className="ot ot--rt" id="bookings">
         <div className="thead">
           <div className="th">ID</div>
           <div className="th">Customer</div>

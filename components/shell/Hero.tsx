@@ -86,6 +86,20 @@ export function Hero({
           : undefined
       }
     >
+      {/* Mobile: pin the status badge to the top-right corner with reduced
+          padding so it clears the eyebrow/headline text below it. left:auto
+          cancels the top-left placement globals.css applies at <=640px.
+          Desktop is unchanged. */}
+      <style>{`
+        @media (max-width: 768px) {
+          .hero-v2 .hero-status-widget {
+            top: 8px;
+            right: 8px;
+            left: auto;
+            padding: 4px 8px;
+          }
+        }
+      `}</style>
       <canvas ref={canvasRef} className="hero-v2-canvas" />
       {scene && <div className="hero-v2-scene">{scene}</div>}
       <div className="hero-v2-fade" />

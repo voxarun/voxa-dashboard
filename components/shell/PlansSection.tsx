@@ -57,6 +57,14 @@ export function PlansSection({ currentTier }: { currentTier: string }) {
   const current = (currentTier || "").toLowerCase();
   return (
     <div style={{ marginBottom: 20 }}>
+      {/* Mobile: stack the plan cards into a single column and make them more
+          compact (reduced padding). Desktop layout is unchanged. */}
+      <style>{`
+        @media (max-width: 768px) {
+          .plans { grid-template-columns: 1fr; }
+          .plans .plan { padding: 14px; }
+        }
+      `}</style>
       <div className="ot-hdr">
         <div>
           <div className="ot-title">Your Plan</div>

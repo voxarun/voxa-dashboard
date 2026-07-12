@@ -7,9 +7,10 @@ import { VoxaBrain } from "@/components/shell/VoxaBrain";
 import { ChartsSection } from "@/components/shell/ChartsSection";
 import { AgentsGrid } from "@/components/shell/AgentsGrid";
 import { PlansSection } from "@/components/shell/PlansSection";
-import { DataTable } from "@/components/shell/DataTable";
+import { RealtimeDataTable } from "@/components/shell/RealtimeDataTable";
 import { BottomGrid } from "@/components/shell/BottomGrid";
 import { FleetSection } from "@/components/shell/FleetSection";
+import { getDataProjectPublicConfig } from "@/lib/data-projects";
 import { notFound } from "next/navigation";
 
 function timeAgo(iso: string | null | undefined): string {
@@ -34,6 +35,7 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
   ]);
   const isTaxi = client.data_project === "taxi";
   const kpi = summarizeOrders(rows, client);
+  const rt = getDataProjectPublicConfig(client.data_project);
 
   const tickerItems = rows.slice(0, 10).map((r) => {
     const name = String(r.customer_name ?? "").trim() || "Customer";
@@ -127,7 +129,13 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
             Couldn&apos;t load {isTaxi ? "bookings" : "orders"}: {error}
           </div>
         ) : (
-          <DataTable rows={rows} isTaxi={isTaxi} />
+          <RealtimeDataTable
+            initialRows={rows}
+            isTaxi={isTaxi}
+            supabaseUrl={rt.url}
+            supabaseAnonKey={rt.anonKey}
+            table={rt.table}
+          />
         )}
       </div>
 

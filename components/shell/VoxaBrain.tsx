@@ -19,6 +19,21 @@ export function VoxaBrain({
 }) {
   return (
     <div className="running-panel">
+      {/* Mobile: the desktop .rp-top is a fixed 280px brain column + 1fr, which
+          crushes the activity column on small screens. Below 768px, stack the
+          two into a single column and trim the excess vertical padding. Scoped
+          to .running-panel; desktop layout is unchanged. */}
+      <style>{`
+        @media (max-width: 768px) {
+          .running-panel .rp-top { grid-template-columns: 1fr; min-height: 0; }
+          .running-panel .brain-col {
+            border-right: none;
+            border-bottom: 1px solid var(--b1);
+            padding: 16px 20px;
+          }
+          .running-panel .activity-col { padding: 16px 22px; }
+        }
+      `}</style>
       <div className="rp-top">
         <div className="brain-col">
           <div className="brain-glow-bg" />

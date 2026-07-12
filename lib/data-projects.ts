@@ -47,3 +47,14 @@ export function getDataProjectClient(dataProject: "takeaway" | "taxi") {
   );
   return { client, ordersTable: cfg.ordersTable, usingServiceRole };
 }
+
+/**
+ * Browser-safe connection info for a data project, used to open a realtime
+ * subscription from a client component. Returns ONLY the public URL + anon
+ * key (both already exposed via NEXT_PUBLIC_*) and the orders table name —
+ * never the service-role key — so it is safe to pass into the browser.
+ */
+export function getDataProjectPublicConfig(dataProject: "takeaway" | "taxi") {
+  const cfg = PROJECTS[dataProject];
+  return { url: cfg.url, anonKey: cfg.anonKey, table: cfg.ordersTable };
+}

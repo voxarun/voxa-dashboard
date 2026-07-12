@@ -1,10 +1,7 @@
-import Link from "next/link";
 import { getAllClients, getRecentOrders, getCallHealth, summarizeOrders } from "@/lib/dashboard-data";
 import { getAllServiceHealth } from "@/lib/monitoring";
-import { Hero } from "@/components/shell/Hero";
-import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
-import { VoxaBrain } from "@/components/shell/VoxaBrain";
-import { AdminHeroScene } from "@/components/shell/AdminHeroScene";
+import { getDataProjectPublicConfig } from "@/lib/data-projects";
+import { AdminRealtimeWrapper } from "@/components/shell/AdminRealtimeWrapper";
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "—";
@@ -35,6 +32,7 @@ export default async function AdminOverviewPage() {
   const healthyCount = rows.filter((r) => r.health.healthy).length;
   const totalCalls = rows.reduce((sum, r) => sum + r.health.totalCalls, 0);
   const liveOrdering = clients.filter((c) => c.online_ordering_enabled).length;
+  const openNow = clients.filter((c) => c.is_open).length;
 
   // Real cross-client activity feed — newest rows across every client's
   // orders/bookings table, merged and sorted. No synthetic events.
@@ -63,179 +61,60 @@ export default async function AdminOverviewPage() {
     .flatMap((r) => (r.health.totalCalls > 0 ? [{ text: `${r.client.name} — ${r.health.totalCalls} calls logged`, color: "var(--cyan)" }] : []))
     .slice(0, 10);
 
-  const tiles: KpiTile[] = [
-    { icon: "🏢", tone: "kb", label: "Onboarded Clients", value: String(totalClients) },
-    {
-      icon: "🎙️",
-      tone: healthyCount === totalClients && totalClients > 0 ? "kg" : "ka",
-      label: "Voice Agent Healthy",
-      value: `${healthyCount} / ${totalClients}`,
-    },
-    { icon: "📞", tone: "kp", label: "Calls Logged (recent)", value: String(totalCalls) },
-    { icon: "🌐", tone: "kg", label: "Online Ordering Live", value: `${liveOrdering} / ${totalClients}` },
-  ];
-
   const healthRows = [serviceHealth.vapi, serviceHealth.twilio, serviceHealth.n8n];
 
+  // --- Data prepared for the realtime client wrapper -----------------------
+  // Orders count per data project. getRecentOrders isn't client-filtered, so
+  // every client in a project shares the same recent-orders count; capture it
+  // per project so a new INSERT can bump the right clients' cells live.
+  const ordersByProject: Record<"takeaway" | "taxi", number> = { takeaway: 0, taxi: 0 };
+  for (const r of rows) ordersByProject[r.client.data_project] = r.kpi.total;
+
+  // How many clients belong to each project — the admin "Calls Logged" total is
+  // a sum of each client's recent call count, so one new call in a project adds
+  // (number of clients in that project) to the total on a refresh.
+  const clientsByProject: Record<"takeaway" | "taxi", number> = { takeaway: 0, taxi: 0 };
+  for (const c of clients) clientsByProject[c.data_project] += 1;
+
+  // A representative client name per project to label a new order in the feed
+  // (orders aren't tied to a single client, mirroring the server labelling).
+  const representativeClientByProject: Record<"takeaway" | "taxi", string> = { takeaway: "", taxi: "" };
+  for (const c of clients) {
+    if (!representativeClientByProject[c.data_project]) representativeClientByProject[c.data_project] = c.name;
+  }
+
+  const clientRows = rows.map(({ client, health }) => ({
+    id: client.id,
+    name: client.name,
+    industry: client.industry,
+    plan_tier: client.plan_tier,
+    online_ordering_enabled: client.online_ordering_enabled,
+    slug: client.slug,
+    dataProject: client.data_project,
+    healthy: health.healthy,
+  }));
+
+  const rtTakeaway = getDataProjectPublicConfig("takeaway");
+  const rtTaxi = getDataProjectPublicConfig("taxi");
+
   return (
-    <div>
-      <Hero
-        eyebrow="Voxa Platform · Admin"
-        headline="Every client."
-        headlineEm="One view."
-        statusLabel="Voxa AI"
-        statusValue="Monitoring live"
-        tickerItems={tickerItems.map((t) => t.text)}
-        stats={[
-          { value: String(totalClients), label: "Clients", tone: "b" },
-          { value: `${healthyCount}/${totalClients}`, label: "Voice Agents", tone: "g" },
-          { value: String(totalCalls), label: "Calls Logged", tone: "p" },
-        ]}
-        scene={
-          <AdminHeroScene
-            healthyCount={healthyCount}
-            totalClients={totalClients}
-            totalCalls={totalCalls}
-          />
-        }
-      />
-
-      <KpiGrid tiles={tiles} />
-
-      <VoxaBrain activity={activity} tickerItems={tickerItems} brainLabel="VOXA AI BRAIN" />
-
-      <div style={{ marginBottom: 20 }} id="health">
-        <div className="ot-hdr">
-          <div>
-            <div className="ot-title">System Health</div>
-            <div className="ot-sub">Live status of the services powering every client</div>
-          </div>
-        </div>
-        <div className="fleet-grid" style={{ gridTemplateColumns: "repeat(3,minmax(0,1fr))" }}>
-          {healthRows.map((h) => (
-            <div key={h.service} className="card">
-              <div className="ch">
-                <div>
-                  <div className="ct" style={{ textTransform: "capitalize" }}>{h.service}</div>
-                  <div className="cs">{h.detail}</div>
-                </div>
-                <span className={`badge ${!h.configured ? "r" : h.healthy ? "g" : "a"}`}>
-                  {!h.configured ? "Not connected" : h.headline}
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  className="pulse-dot"
-                  style={{ background: !h.configured ? "var(--red)" : h.healthy ? "var(--green)" : "var(--amber)" }}
-                />
-                <span style={{ fontSize: 11, color: "var(--t2)" }}>
-                  {!h.configured ? "Add credentials in Vercel to activate" : h.healthy ? "Operating normally" : "Needs attention"}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <div className="ot-hdr">
-          <div>
-            <div className="ot-title">All Clients</div>
-            <div className="ot-sub">Platform-wide · nothing here is visible to any client</div>
-          </div>
-        </div>
-        <div className="ot">
-          <div className="thead" style={{ gridTemplateColumns: "1.2fr 100px 100px 100px 140px 100px 110px" }}>
-            <div className="th">Client</div>
-            <div className="th">Industry</div>
-            <div className="th">Plan</div>
-            <div className="th">Status</div>
-            <div className="th">Voice Agent</div>
-            <div className="th">Orders</div>
-            <div className="th"></div>
-          </div>
-          {rows.map(({ client, kpi, health }) => (
-            <div key={client.id} className="tr" style={{ gridTemplateColumns: "1.2fr 100px 100px 100px 140px 100px 110px" }}>
-              <div className="td br">{client.name}</div>
-              <div className="td" style={{ textTransform: "capitalize" }}>{client.industry}</div>
-              <div className="td mn" style={{ textTransform: "uppercase" }}>{client.plan_tier}</div>
-              <div className="td">
-                <span className={`chip ${client.online_ordering_enabled ? "cd" : "ca"}`}>
-                  {client.online_ordering_enabled ? "Live" : "Disabled"}
-                </span>
-              </div>
-              <div className="td">
-                <span className={`chip ${health.healthy ? "cd" : "ca"}`}>
-                  {health.healthy ? "Active" : "No recent calls"}
-                </span>
-              </div>
-              <div className="td">{kpi.total}</div>
-              <div className="td" style={{ display: "flex", gap: 6 }}>
-                <Link href={`/${client.slug}`} className="btn" style={{ textDecoration: "none" }}>
-                  View →
-                </Link>
-                <Link href={`/admin/clients/${client.slug}`} className="btn p" style={{ textDecoration: "none" }}>
-                  Manage
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bot" style={{ gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}>
-        <div className="card">
-          <div className="ch">
-            <div>
-              <div className="ct">Client Status Breakdown</div>
-              <div className="cs">Live snapshot</div>
-            </div>
-          </div>
-          <div className="rev-stat">
-            <span className="rev-label">Open now</span>
-            <span className="rev-val a">{clients.filter((c) => c.is_open).length} / {totalClients}</span>
-          </div>
-          <div className="rev-stat">
-            <span className="rev-label">Online ordering enabled</span>
-            <span className="rev-val a">{liveOrdering} / {totalClients}</span>
-          </div>
-          <div className="rev-stat">
-            <span className="rev-label">Voice agent healthy</span>
-            <span className="rev-val a">{healthyCount} / {totalClients}</span>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="ch">
-            <div>
-              <div className="ct">AI Insights</div>
-              <div className="cs">Generated from live data</div>
-            </div>
-          </div>
-          {healthyCount < totalClients && totalClients > 0 && (
-            <div className="ins">
-              <div className="ins-ic">⚠️</div>
-              <div className="ins-tx">
-                <strong>{totalClients - healthyCount}</strong> client(s) have no calls logged in the last 30 days — worth a check-in.
-              </div>
-            </div>
-          )}
-          {totalCalls > 0 && (
-            <div className="ins">
-              <div className="ins-ic">📞</div>
-              <div className="ins-tx">
-                <strong>{totalCalls}</strong> total calls logged across the platform, recent window.
-              </div>
-            </div>
-          )}
-          {totalClients === 0 && (
-            <div className="ins">
-              <div className="ins-ic">🧠</div>
-              <div className="ins-tx">No clients onboarded yet.</div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <AdminRealtimeWrapper
+      totalClients={totalClients}
+      healthyCount={healthyCount}
+      initialTotalCalls={totalCalls}
+      liveOrdering={liveOrdering}
+      openNow={openNow}
+      initialOrdersByProject={ordersByProject}
+      clientsByProject={clientsByProject}
+      representativeClientByProject={representativeClientByProject}
+      initialActivity={activity}
+      tickerItems={tickerItems}
+      clientRows={clientRows}
+      healthRows={healthRows}
+      realtime={{
+        takeaway: { url: rtTakeaway.url, anonKey: rtTakeaway.anonKey, ordersTable: rtTakeaway.table },
+        taxi: { url: rtTaxi.url, anonKey: rtTaxi.anonKey, ordersTable: rtTaxi.table },
+      }}
+    />
   );
 }

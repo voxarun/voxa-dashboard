@@ -10,7 +10,12 @@ const PUBLIC_PATHS = ["/login"];
 // never land on /admin, and admin.voxa.run never serves a bare client view
 // to a non-admin.
 function isAdminHost(hostname: string) {
-  return hostname === "admin.voxa.run" || hostname.startsWith("admin.localhost");
+  return (
+    hostname === "admin.voxa.run" ||
+    hostname.startsWith("admin.localhost") ||
+    hostname === "localhost" ||
+    hostname.startsWith("localhost:")
+  );
 }
 
 export async function middleware(request: NextRequest) {
