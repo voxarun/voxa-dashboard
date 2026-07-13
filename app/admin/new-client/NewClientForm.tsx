@@ -1,11 +1,113 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientRow } from "./actions";
 
-const inputCls = "w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none";
+const inputCls =
+  "w-full rounded-[14px] border px-4 py-3 text-sm outline-none shadow-sm transition-all duration-150 focus:shadow-[0_0_0_3px_rgba(0,148,255,0.22)]";
+// top-level fields sit directly on the form (s1) → use the lighter s2 so they pop
 const inputStyle = { borderColor: "var(--b1)", background: "var(--s2)", color: "var(--t1)" } as const;
+// fields nested inside an s2 card → use s1 so they stay legible against the card
+const nestedStyle = { borderColor: "var(--b1)", background: "var(--s1)", color: "var(--t1)" } as const;
+const cardStyle = { borderColor: "var(--b1)", background: "var(--s2)" } as const;
+const labelCls = "mb-2 block text-[10px] font-bold uppercase tracking-[0.14em]";
+
+// Custom dark dropdown — replaces the native <select> so the option list matches
+// the form theme (native option popups render white on some platforms). Behaves
+// like a controlled select: `onChange(value)` fires with the chosen option's value.
+function CustomSelect({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  ariaLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handlePointer(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputCls} flex items-center justify-between gap-2 text-left`}
+        style={nestedStyle}
+      >
+        <span className="truncate">{selected?.label ?? ""}</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          className={`flex-shrink-0 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          style={{ color: "var(--t3)" }}
+        >
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-label={ariaLabel}
+          className="absolute left-0 right-0 z-20 mt-2 max-h-64 overflow-auto rounded-[14px] border p-1 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.7)]"
+          style={{ borderColor: "var(--b1)", background: "#080c16" }}
+        >
+          {options.map((o) => {
+            const active = o.value === value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06]"
+                style={{ color: active ? "var(--t1)" : "var(--t2)", background: active ? "var(--s2)" : "transparent" }}
+              >
+                <span className="truncate">{o.label}</span>
+                {active && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0" style={{ color: "var(--blue2)" }}>
+                    <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function NewClientForm() {
   const [name, setName] = useState("");
@@ -62,100 +164,146 @@ export function NewClientForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg space-y-4">
-      <div>
-        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-          Business name
-        </label>
-        <input className={inputCls} style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Royal Spice" />
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-          URL slug (order.voxa.run/&#123;slug&#125; and dashboard.voxa.run/&#123;slug&#125;)
-        </label>
-        <input className={inputCls} style={inputStyle} value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="royal-spice" />
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-          Tagline
-        </label>
-        <input className={inputCls} style={inputStyle} value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Bradford's finest curry house" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto max-w-2xl space-y-7 rounded-3xl border p-6 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-8"
+      style={{ borderColor: "var(--b1)", background: "var(--s1)" }}
+    >
+      {/* ── Basics ── */}
+      <div className="space-y-5">
         <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-            Industry
+          <label className={labelCls} style={{ color: "var(--t3)" }}>
+            Business name
           </label>
-          <select className={inputCls} style={inputStyle} value={industry} onChange={(e) => setIndustry(e.target.value)}>
-            <option value="takeaway">Takeaway</option>
-            <option value="taxi">Taxi</option>
-            <option value="salon">Salon</option>
-            <option value="lawfirm">Law Firm</option>
-            <option value="other">Other</option>
-          </select>
+          <input className={inputCls} style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Royal Spice" />
         </div>
+
         <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-            Data project
+          <label className={labelCls} style={{ color: "var(--t3)" }}>
+            URL slug (order.voxa.run/&#123;slug&#125; and dashboard.voxa.run/&#123;slug&#125;)
           </label>
-          <select className={inputCls} style={inputStyle} value={dataProject} onChange={(e) => setDataProject(e.target.value as "takeaway" | "taxi")}>
-            <option value="takeaway">Takeaway (VOXA TAKEAWAY project)</option>
-            <option value="taxi">Taxi (Voxa Taxi project)</option>
-          </select>
+          <input className={inputCls} style={inputStyle} value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="royal-spice" />
+        </div>
+
+        <div>
+          <label className={labelCls} style={{ color: "var(--t3)" }}>
+            Tagline
+          </label>
+          <input className={inputCls} style={inputStyle} value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Bradford's finest curry house" />
         </div>
       </div>
-      <p className="-mt-2 text-xs" style={{ color: "var(--t3)" }}>
-        A brand-new vertical (salon, law firm) needs its own Supabase project provisioned before it can go live — pick whichever
-        of the two existing projects it&apos;s closest to for now, or ask a developer to provision a new one.
-      </p>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
+      <div className="h-px w-full" style={{ background: "var(--b1)" }} />
+
+      {/* ── Configuration (select cards) ── */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border p-4 shadow-sm transition-all duration-150" style={cardStyle}>
+            <label className={labelCls} style={{ color: "var(--t3)" }}>
+              Industry
+            </label>
+            <CustomSelect
+              ariaLabel="Industry"
+              value={industry}
+              onChange={(v) => setIndustry(v)}
+              options={[
+                { value: "takeaway", label: "Takeaway" },
+                { value: "taxi", label: "Taxi" },
+                { value: "salon", label: "Salon" },
+                { value: "lawfirm", label: "Law Firm" },
+                { value: "other", label: "Other" },
+              ]}
+            />
+          </div>
+          <div className="rounded-2xl border p-4 shadow-sm transition-all duration-150" style={cardStyle}>
+            <label className={labelCls} style={{ color: "var(--t3)" }}>
+              Data project
+            </label>
+            <CustomSelect
+              ariaLabel="Data project"
+              value={dataProject}
+              onChange={(v) => setDataProject(v as "takeaway" | "taxi")}
+              options={[
+                { value: "takeaway", label: "Takeaway (VOXA TAKEAWAY project)" },
+                { value: "taxi", label: "Taxi (Voxa Taxi project)" },
+              ]}
+            />
+          </div>
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--t3)" }}>
+          A brand-new vertical (salon, law firm) needs its own Supabase project provisioned before it can go live — pick whichever
+          of the two existing projects it&apos;s closest to for now, or ask a developer to provision a new one.
+        </p>
+      </div>
+
+      <div className="h-px w-full" style={{ background: "var(--b1)" }} />
+
+      {/* ── Plan & branding (cards) ── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border p-4 shadow-sm transition-all duration-150" style={cardStyle}>
+          <label className={labelCls} style={{ color: "var(--t3)" }}>
             Plan tier
           </label>
-          <select className={inputCls} style={inputStyle} value={planTier} onChange={(e) => setPlanTier(e.target.value as "basic" | "pro" | "empire")}>
-            <option value="basic">Basic</option>
-            <option value="pro">Pro</option>
-            <option value="empire">Empire</option>
-          </select>
+          <CustomSelect
+            ariaLabel="Plan tier"
+            value={planTier}
+            onChange={(v) => setPlanTier(v as "basic" | "pro" | "empire")}
+            options={[
+              { value: "basic", label: "Basic" },
+              { value: "pro", label: "Pro" },
+              { value: "empire", label: "Empire" },
+            ]}
+          />
         </div>
-        <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
+        <div className="rounded-2xl border p-4 shadow-sm transition-all duration-150" style={cardStyle}>
+          <label className={labelCls} style={{ color: "var(--t3)" }}>
             Brand colour
           </label>
-          <input type="color" className="h-[42px] w-full rounded-xl border" style={{ borderColor: "var(--b1)" }} value={brandColor} onChange={(e) => setBrandColor(e.target.value)} />
+          <input
+            type="color"
+            className="h-[46px] w-full cursor-pointer rounded-[14px] border p-1 shadow-sm transition-all duration-150"
+            style={{ borderColor: "var(--b1)", background: "var(--s1)" }}
+            value={brandColor}
+            onChange={(e) => setBrandColor(e.target.value)}
+          />
         </div>
       </div>
 
+      <div className="h-px w-full" style={{ background: "var(--b1)" }} />
+
+      {/* ── Contact ── */}
       <div>
-        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
+        <label className={labelCls} style={{ color: "var(--t3)" }}>
           Owner phone (for SMS alerts)
         </label>
         <input className={inputCls} style={inputStyle} value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="+447700000000" />
       </div>
 
-      <div className="rounded-xl border p-3.5" style={{ borderColor: "var(--b1)", background: "var(--s1)" }}>
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
+      <div className="h-px w-full" style={{ background: "var(--b1)" }} />
+
+      {/* ── Owner login (distinct card) ── */}
+      <div className="rounded-2xl border p-5 shadow-sm" style={cardStyle}>
+        <div className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--t3)" }}>
+          Owner Account
+        </div>
+        <div className="my-4 h-px w-full" style={{ background: "var(--b1)" }} />
+        <div className="mb-4 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--t3)" }}>
           Owner login (optional — creates their dashboard.voxa.run/&#123;slug&#125; account now)
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4 rounded-2xl p-4" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
           <input
             type="email"
             className={inputCls}
-            style={inputStyle}
+            style={nestedStyle}
             value={ownerEmail}
             onChange={(e) => setOwnerEmail(e.target.value)}
             placeholder="owner@theirbusiness.com"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               type="text"
               className={inputCls}
-              style={inputStyle}
+              style={nestedStyle}
               value={ownerPassword}
               onChange={(e) => setOwnerPassword(e.target.value)}
               placeholder="Password"
@@ -163,30 +311,30 @@ export function NewClientForm() {
             <button
               type="button"
               onClick={generatePassword}
-              className="whitespace-nowrap rounded-xl border px-3 text-xs font-semibold"
+              className="whitespace-nowrap rounded-[14px] border px-4 text-xs font-semibold shadow-sm transition-all duration-150 hover:bg-white/[0.06] hover:shadow active:scale-[0.98]"
               style={{ borderColor: "var(--b1)", color: "var(--t2)" }}
             >
               Generate
             </button>
           </div>
-          <p className="text-[11px]" style={{ color: "var(--t3)" }}>
+          <p className="text-[11px] leading-relaxed" style={{ color: "var(--t3)" }}>
             Leave both blank to skip — you can create the login later from this client&apos;s Manage page.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border px-3.5 py-2.5 text-sm" style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.08)", color: "var(--red)" }}>
+        <div className="rounded-[14px] border px-4 py-3 text-sm" style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.08)", color: "var(--red)" }}>
           {error}
         </div>
       )}
       {warning && (
-        <div className="rounded-xl border px-3.5 py-2.5 text-sm" style={{ borderColor: "rgba(255,171,0,0.3)", background: "rgba(255,171,0,0.08)", color: "var(--amber)" }}>
+        <div className="rounded-[14px] border px-4 py-3 text-sm" style={{ borderColor: "rgba(255,171,0,0.3)", background: "rgba(255,171,0,0.08)", color: "var(--amber)" }}>
           {warning}
         </div>
       )}
       {success && (
-        <div className="rounded-xl border px-3.5 py-2.5 text-sm" style={{ borderColor: "rgba(0,230,118,0.3)", background: "rgba(0,230,118,0.08)", color: "var(--green)" }}>
+        <div className="rounded-[14px] border px-4 py-3 text-sm" style={{ borderColor: "rgba(0,230,118,0.3)", background: "rgba(0,230,118,0.08)", color: "var(--green)" }}>
           Client created — redirecting...
         </div>
       )}
@@ -194,13 +342,13 @@ export function NewClientForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl py-3 text-sm font-bold text-black disabled:opacity-60"
+        className="w-full rounded-2xl py-4 text-[15px] font-extrabold tracking-wide text-black shadow-[0_16px_44px_-12px_rgba(124,58,237,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_60px_-12px_rgba(124,58,237,0.75)] hover:brightness-[1.08] active:translate-y-0 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:brightness-100"
         style={{ background: "linear-gradient(115deg,#7c3aed,#0094ff)" }}
       >
         {pending ? "Creating..." : "Create client"}
       </button>
 
-      <p className="text-xs" style={{ color: "var(--t3)" }}>
+      <p className="text-xs leading-relaxed" style={{ color: "var(--t3)" }}>
         Goes live on order.voxa.run/&#123;slug&#125; and dashboard.voxa.run/&#123;slug&#125; immediately. If you filled in the owner
         login above, their dashboard account is created in this same step — nothing to set up by hand.
       </p>

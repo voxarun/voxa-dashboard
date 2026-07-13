@@ -30,7 +30,9 @@
   --industry-border: rgba(0,148,255,0.2);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+@layer base {
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+}
 html { scroll-behavior: smooth; }
 html, body { height: 100%; background: var(--bg); overflow-x: hidden; }
 a { color: inherit; }
