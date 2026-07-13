@@ -16,7 +16,7 @@ export function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="w-full rounded-lg py-2 text-left text-[13px] font-medium"
+      className="w-full cursor-pointer rounded-lg py-2 text-left text-[13px] font-medium"
       style={{ color: "var(--t2)" }}
     >
       Sign out

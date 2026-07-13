@@ -80,6 +80,9 @@ export function RealtimeDataTable({
 
     return () => {
       supabase.removeChannel(channel);
+      // Tear down the underlying realtime WebSocket (and the lingering GoTrueClient)
+      // so navigating between client dashboards doesn't accumulate Supabase clients.
+      supabase.realtime.disconnect();
     };
   }, [supabaseUrl, supabaseAnonKey, table]);
 

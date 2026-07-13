@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Hero } from "./Hero";
 import { KpiGrid, type KpiTile } from "./KpiGrid";
@@ -72,6 +72,20 @@ export function AdminRealtimeWrapper({
   const [ordersByProject, setOrdersByProject] = useState(initialOrdersByProject);
   const [activity, setActivity] = useState(initialActivity);
 
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  // Programmatic navigation with a visible loading state. useTransition keeps the
+  // UI responsive (React yields to paint) so the click no longer feels like a
+  // freeze while the destination route loads.
+  function navigate(href: string) {
+    setPendingHref(href);
+    startTransition(() => {
+      router.push(href);
+    });
+  }
+
   useEffect(() => {
     // realtime / clientsByProject / representativeClientByProject come from the
     // server component (single render), so their identities are stable and this
@@ -101,17 +115,21 @@ export function AdminRealtimeWrapper({
             return [item, ...prev].slice(0, 8);
           });
         })
-        // New call logged → each client of this project shows +1, mirroring how
-        // the server sums per-client call counts across the project.
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "call_logs" }, () => {
-          setTotalCalls((prev) => prev + (clientsByProject[key] ?? 0));
-        })
         .subscribe();
       return { sb, ch };
     });
 
     return () => {
-      for (const e of entries) if (e) e.sb.removeChannel(e.ch);
+      for (const e of entries) {
+        if (!e) continue;
+        e.sb.removeChannel(e.ch);
+        // Also drop any other channels on this client, then tear down the
+        // underlying realtime WebSocket (and with it the lingering GoTrueClient)
+        // so navigating to View/Manage and back doesn't accumulate Supabase
+        // clients/sockets across mounts.
+        e.sb.removeAllChannels();
+        e.sb.realtime.disconnect();
+      }
     };
   }, [realtime, clientsByProject, representativeClientByProject]);
 
@@ -291,13 +309,25 @@ export function AdminRealtimeWrapper({
               <div className="td">{ordersByProject[row.dataProject]}</div>
               <div className="td" style={{ display: "flex", gap: 6 }}>
                 {row.slug?.trim() ? (
-                  <Link href={`/${row.slug}`} className="btn" style={{ textDecoration: "none" }}>
-                    View →
-                  </Link>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ textDecoration: "none" }}
+                    disabled={isPending}
+                    onClick={() => navigate(`/${row.slug}`)}
+                  >
+                    {isPending && pendingHref === `/${row.slug}` ? "Loading…" : "View"}
+                  </button>
                 ) : null}
-                <Link href={`/admin/clients/${row.slug}`} className="btn p" style={{ textDecoration: "none" }}>
-                  Manage
-                </Link>
+                <button
+                  type="button"
+                  className="btn p"
+                  style={{ textDecoration: "none" }}
+                  disabled={isPending}
+                  onClick={() => navigate(`/admin/clients/${row.slug}`)}
+                >
+                  {isPending && pendingHref === `/admin/clients/${row.slug}` ? "Loading…" : "Manage"}
+                </button>
               </div>
             </div>
           ))}

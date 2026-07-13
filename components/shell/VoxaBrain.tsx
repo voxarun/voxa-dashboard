@@ -24,6 +24,22 @@ export function VoxaBrain({
           two into a single column and trim the excess vertical padding. Scoped
           to .running-panel; desktop layout is unchanged. */}
       <style>{`
+        /* Compact sizing overrides — scoped to .running-panel and sizes/padding
+           only (no colour or behaviour changes). These are two-class selectors so
+           they win over the single-class base rules in globals.css. The orb is
+           shrunk 120px -> 90px with its ring insets scaled proportionally
+           (0.125 / 0.233 / 0.3 of the diameter) so the animation keeps its shape. */
+        .running-panel .rp-top { min-height: 150px; }
+        .running-panel .brain-col { padding: 16px 20px; }
+        .running-panel .brain-label { margin-top: 10px; }
+        .running-panel .orb { width: 90px; height: 90px; }
+        .running-panel .orb-r2 { inset: 11px; }
+        .running-panel .orb-r3 { inset: 21px; }
+        .running-panel .orb-core-el { inset: 27px; }
+        .running-panel .activity-col { padding: 14px 22px; }
+        .running-panel .ac-head { margin-bottom: 10px; }
+        .running-panel .act-body { padding-bottom: 10px; }
+
         @media (max-width: 768px) {
           .running-panel .rp-top { grid-template-columns: 1fr; min-height: 0; }
           .running-panel .brain-col {

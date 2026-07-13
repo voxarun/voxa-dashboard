@@ -1,7 +1,7 @@
 import { getClientBySlug, getRecentOrders, getRecentCallLogs, summarizeOrders, getCallHealth } from "@/lib/dashboard-data";
 import { Hero } from "@/components/shell/Hero";
-import { NeonRainScene } from "@/components/shell/NeonRainScene";
-import { DispatchRadarScene } from "@/components/shell/DispatchRadarScene";
+import { NeonRainScene } from "@/components/shell/NeonRainSceneClient";
+import { DispatchRadarScene } from "@/components/shell/DispatchRadarSceneClient";
 import { KpiGrid, type KpiTile } from "@/components/shell/KpiGrid";
 import { VoxaBrain } from "@/components/shell/VoxaBrain";
 import { ChartsSection } from "@/components/shell/ChartsSection";
@@ -96,7 +96,6 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
         statusLabel="Voxa AI"
         statusValue={client.is_open ? "Live · Open" : "Live · Closed"}
         tickerItems={tickerItems}
-        scene={isTaxi ? <DispatchRadarScene /> : <NeonRainScene />}
         stats={[
           { value: String(kpi.total), label: isTaxi ? "Bookings" : "Orders", tone: "b" },
           ...(!isTaxi
@@ -108,6 +107,7 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
             tone: callHealth.healthy ? ("p" as const) : undefined,
           },
         ]}
+        scene={isTaxi ? <DispatchRadarScene /> : <NeonRainScene />}
       />
 
       <VoxaBrain
