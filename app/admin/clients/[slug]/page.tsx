@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getClientBySlug, getClientOwner, getRecentOrders, getCallHealth } from "@/lib/dashboard-data";
+import { getClientBySlug, getClientUsers, getRecentOrders, getCallHealth } from "@/lib/dashboard-data";
 import { ManageClientForm } from "./ManageClientForm";
 
 export default async function ManageClientPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -8,8 +8,8 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
   const client = await getClientBySlug(slug);
   if (!client) notFound();
 
-  const [owner, { rows }, callHealth] = await Promise.all([
-    getClientOwner(client.id),
+  const [users, { rows }, callHealth] = await Promise.all([
+    getClientUsers(client.id),
     getRecentOrders(client, 30),
     getCallHealth(client),
   ]);
@@ -52,8 +52,12 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
           is_open: client.is_open,
           n8n_webhook_url: client.n8n_webhook_url,
         }}
-        ownerId={owner?.id ?? null}
-        ownerEmail={owner?.email ?? null}
+        users={users.map((u) => ({
+          id: u.id,
+          email: u.email,
+          full_name: u.full_name,
+          role: u.role,
+        }))}
       />
 
       <div style={{ marginTop: 20 }} className="card">

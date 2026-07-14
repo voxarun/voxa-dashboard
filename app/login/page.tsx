@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 
 export default function LoginPage() {
@@ -26,7 +27,9 @@ export default function LoginPage() {
             />
             <span className="text-xl font-extrabold tracking-tight">Voxa Dashboard</span>
           </div>
-          <LoginForm />
+          <Suspense fallback={<div style={{ height: 232 }} />}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>

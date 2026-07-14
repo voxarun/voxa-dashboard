@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Hero } from "./Hero";
 import { KpiGrid, type KpiTile } from "./KpiGrid";
@@ -71,20 +70,6 @@ export function AdminRealtimeWrapper({
   const [totalCalls, setTotalCalls] = useState(initialTotalCalls);
   const [ordersByProject, setOrdersByProject] = useState(initialOrdersByProject);
   const [activity, setActivity] = useState(initialActivity);
-
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [pendingHref, setPendingHref] = useState<string | null>(null);
-
-  // Programmatic navigation with a visible loading state. useTransition keeps the
-  // UI responsive (React yields to paint) so the click no longer feels like a
-  // freeze while the destination route loads.
-  function navigate(href: string) {
-    setPendingHref(href);
-    startTransition(() => {
-      router.push(href);
-    });
-  }
 
   useEffect(() => {
     // realtime / clientsByProject / representativeClientByProject come from the
@@ -308,26 +293,18 @@ export function AdminRealtimeWrapper({
               </div>
               <div className="td">{ordersByProject[row.dataProject]}</div>
               <div className="td" style={{ display: "flex", gap: 6 }}>
+                {/* Plain <a> = full navigation. Deliberately NOT router.push in a
+                    useTransition: that kept a shared pending state and, if a
+                    destination render stalled, both buttons sat on "Loading…"
+                    and the page looked hung. A real navigation always lands. */}
                 {row.slug?.trim() ? (
-                  <button
-                    type="button"
-                    className="btn"
-                    style={{ textDecoration: "none" }}
-                    disabled={isPending}
-                    onClick={() => navigate(`/${row.slug}`)}
-                  >
-                    {isPending && pendingHref === `/${row.slug}` ? "Loading…" : "View"}
-                  </button>
+                  <a className="btn" href={`/${row.slug}`} style={{ textDecoration: "none" }}>
+                    View
+                  </a>
                 ) : null}
-                <button
-                  type="button"
-                  className="btn p"
-                  style={{ textDecoration: "none" }}
-                  disabled={isPending}
-                  onClick={() => navigate(`/admin/clients/${row.slug}`)}
-                >
-                  {isPending && pendingHref === `/admin/clients/${row.slug}` ? "Loading…" : "Manage"}
-                </button>
+                <a className="btn p" href={`/admin/clients/${row.slug}`} style={{ textDecoration: "none" }}>
+                  Manage
+                </a>
               </div>
             </div>
           ))}

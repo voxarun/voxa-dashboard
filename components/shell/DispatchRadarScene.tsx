@@ -80,7 +80,7 @@ export function DispatchRadarScene() {
       H = canvas!.height = host!.offsetHeight;
       ambientCanvas.width = W;
       ambientCanvas.height = H;
-      stars = Array.from({ length: 220 }, () => ({
+      stars = Array.from({ length: 120 }, () => ({
         x: Math.random() * W,
         y: Math.random() * H,
         r: Math.random() * 0.8 + 0.1,
@@ -284,14 +284,35 @@ export function DispatchRadarScene() {
         ctx!.fillText(dir, lx - 3, ly + 3);
       });
 
-      t += 0.016;
-      raf = requestAnimationFrame(draw);
+      t += 0.032; // larger delta keeps motion speed ~the same at the 30fps cap
+    }
+
+    // Cap the loop at ~30fps. The taxi hero draws more per frame than the
+    // takeaway one (dual radar sweeps, 8 blips with trails, a per-frame
+    // gradient and multiple shadow-blur passes), and running it at the full
+    // display refresh was heavy enough to saturate the main thread and make
+    // the whole page feel frozen on load. Throttling to 30fps roughly halves
+    // this scene's per-frame cost and is visually indistinguishable here.
+    let lastFrame = 0;
+    const FRAME_MS = 1000 / 30;
+    function frame(nowMs: number) {
+      raf = requestAnimationFrame(frame);
+      if (nowMs - lastFrame < FRAME_MS) return;
+      lastFrame = nowMs;
+      draw();
     }
 
     init();
     const ro = new ResizeObserver(init);
     ro.observe(host);
-    draw();
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      draw(); // honour reduced-motion: one static frame, no animation loop
+    } else {
+      raf = requestAnimationFrame(frame);
+    }
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();

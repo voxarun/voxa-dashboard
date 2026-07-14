@@ -40,6 +40,18 @@ export function getDataProjectClient(dataProject: "takeaway" | "taxi") {
   const cfg = PROJECTS[dataProject];
   const usingServiceRole = Boolean(cfg.serviceKey);
   const key = cfg.serviceKey || cfg.anonKey;
+
+  // If this project's env isn't configured (missing url/key), return a null
+  // client instead of calling createSupabaseClient(undefined, …), which throws
+  // synchronously. An uncaught throw during a Server Component render — with no
+  // error boundary on the route — leaves the client-side navigation transition
+  // stuck, which is exactly what made View/Manage "hang" for a data project
+  // whose keys weren't set (e.g. taxi in an environment missing its vars).
+  // Callers degrade to an empty/error result, so the page renders instead.
+  if (!cfg.url || !key) {
+    return { client: null, ordersTable: cfg.ordersTable, usingServiceRole };
+  }
+
   const client = createSupabaseClient(
     cfg.url,
     key,

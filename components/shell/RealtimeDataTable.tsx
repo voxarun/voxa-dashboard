@@ -31,12 +31,14 @@ function sortNewestFirst(rows: Row[]): Row[] {
 export function RealtimeDataTable({
   initialRows,
   isTaxi,
+  slug,
   supabaseUrl,
   supabaseAnonKey,
   table,
 }: {
   initialRows: Row[];
   isTaxi: boolean;
+  slug: string;
   supabaseUrl: string;
   supabaseAnonKey: string;
   table: string;
@@ -86,5 +88,5 @@ export function RealtimeDataTable({
     };
   }, [supabaseUrl, supabaseAnonKey, table]);
 
-  return <DataTable rows={rows} isTaxi={isTaxi} />;
+  return <DataTable rows={rows} isTaxi={isTaxi} slug={slug} />;
 }

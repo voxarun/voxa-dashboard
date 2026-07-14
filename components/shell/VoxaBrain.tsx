@@ -29,16 +29,34 @@ export function VoxaBrain({
            they win over the single-class base rules in globals.css. The orb is
            shrunk 120px -> 90px with its ring insets scaled proportionally
            (0.125 / 0.233 / 0.3 of the diameter) so the animation keeps its shape. */
-        .running-panel .rp-top { min-height: 150px; }
-        .running-panel .brain-col { padding: 16px 20px; }
-        .running-panel .brain-label { margin-top: 10px; }
-        .running-panel .orb { width: 90px; height: 90px; }
-        .running-panel .orb-r2 { inset: 11px; }
-        .running-panel .orb-r3 { inset: 21px; }
-        .running-panel .orb-core-el { inset: 27px; }
-        .running-panel .activity-col { padding: 14px 22px; }
-        .running-panel .ac-head { margin-bottom: 10px; }
-        .running-panel .act-body { padding-bottom: 10px; }
+        /* Compact: the panel used to grow with the feed and swallow the page.
+           The activity list is now capped and scrolls instead. */
+        .running-panel .rp-top { min-height: 0; }
+        .running-panel .brain-col { padding: 14px 18px; }
+        .running-panel .brain-label { margin-top: 8px; font-size: 12px; }
+        .running-panel .brain-sub { font-size: 9px; }
+        .running-panel .orb { width: 68px; height: 68px; }
+        .running-panel .orb-r2 { inset: 8px; }
+        .running-panel .orb-r3 { inset: 16px; }
+        .running-panel .orb-core-el { inset: 20px; }
+        .running-panel .activity-col { padding: 12px 18px; }
+        .running-panel .ac-head { margin-bottom: 8px; }
+        .running-panel .act-body { padding-bottom: 8px; }
+
+        /* Scroll the feed rather than letting it stretch the card. */
+        .running-panel .activity-list {
+          max-height: 230px;
+          overflow-y: auto;
+          padding-right: 6px;
+        }
+        .running-panel .activity-list::-webkit-scrollbar { width: 5px; }
+        .running-panel .activity-list::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.12);
+          border-radius: 100px;
+        }
+        .running-panel .act-what { font-size: 12.5px; }
+        .running-panel .act-how { font-size: 11px; }
+        .running-panel .act-when { font-size: 10px; }
 
         @media (max-width: 768px) {
           .running-panel .rp-top { grid-template-columns: 1fr; min-height: 0; }

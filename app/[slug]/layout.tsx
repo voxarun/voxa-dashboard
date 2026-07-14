@@ -27,13 +27,15 @@ export default async function ClientLayout({
       items: [
         { icon: "⚡", label: "Command Centre", href: `/${slug}#top`, active: true },
         { icon: "📊", label: "Analytics", disabled: true },
-        { icon: "💰", label: isTaxi ? "Booking Mix" : "Revenue", href: `/${slug}#dispatch` },
+        // Disabled on request — these were hash links into the overview, not real pages.
+        { icon: "💰", label: isTaxi ? "Booking Mix" : "Revenue", disabled: true },
       ],
     },
     {
       title: "Operations",
       items: [
-        { icon: "📋", label: isTaxi ? "Bookings" : "Orders", href: `/${slug}#bookings`, badge: newCount ? String(newCount) : undefined },
+        // Real page now, not a hash link into the overview table.
+        { icon: "📋", label: isTaxi ? "Bookings" : "Orders", href: `/${slug}/orders`, badge: newCount ? String(newCount) : undefined },
         { icon: "📞", label: "Call Logs", disabled: true },
         { icon: isTaxi ? "🚗" : "🍽️", label: isTaxi ? "Fleet Live" : "Kitchen", href: isTaxi ? `/${slug}#fleet` : `/${slug}/chef` },
         { icon: "🛵", label: isTaxi ? "Drivers" : "Delivery", href: `/${slug}/driver` },
@@ -42,7 +44,7 @@ export default async function ClientLayout({
     {
       title: "Intelligence",
       items: [
-        { icon: "🧠", label: "AI Insights", href: `/${slug}#dispatch` },
+        { icon: "🧠", label: "AI Insights", disabled: true },
         { icon: "🗺️", label: "Zone Heatmap", disabled: true },
         { icon: "⭐", label: "Reviews", disabled: true },
       ],

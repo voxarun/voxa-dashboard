@@ -1,4 +1,4 @@
-import { getAllClients, getRecentOrders, getCallHealth, summarizeOrders } from "@/lib/dashboard-data";
+import { getAllClients, getRecentOrders, getCallHealth, getClientStats, summarizeOrders } from "@/lib/dashboard-data";
 import { getAllServiceHealth } from "@/lib/monitoring";
 import { getDataProjectPublicConfig } from "@/lib/data-projects";
 import { AdminRealtimeWrapper } from "@/components/shell/AdminRealtimeWrapper";
@@ -20,9 +20,16 @@ export default async function AdminOverviewPage() {
   const [rows, serviceHealth] = await Promise.all([
     Promise.all(
       clients.map(async (c) => {
-        const [{ rows: orders }, health] = await Promise.all([getRecentOrders(c, 100), getCallHealth(c)]);
+        // getCallHealth() caps its query at 50 rows, so every client reported
+        // "50 calls logged" no matter how many they actually had (real figures:
+        // 240 and 97). getClientStats() aggregates the whole table.
+        const [{ rows: orders }, health, stats] = await Promise.all([
+          getRecentOrders(c, 100),
+          getCallHealth(c),
+          getClientStats(c),
+        ]);
         const kpi = summarizeOrders(orders, c);
-        return { client: c, kpi, health, orders };
+        return { client: c, kpi, health, stats, orders };
       })
     ),
     getAllServiceHealth(),
@@ -30,7 +37,7 @@ export default async function AdminOverviewPage() {
 
   const totalClients = clients.length;
   const healthyCount = rows.filter((r) => r.health.healthy).length;
-  const totalCalls = rows.reduce((sum, r) => sum + r.health.totalCalls, 0);
+  const totalCalls = rows.reduce((sum, r) => sum + r.stats.totalCalls, 0);
   const liveOrdering = clients.filter((c) => c.online_ordering_enabled).length;
   const openNow = clients.filter((c) => c.is_open).length;
 
@@ -58,7 +65,9 @@ export default async function AdminOverviewPage() {
     }));
 
   const tickerItems = rows
-    .flatMap((r) => (r.health.totalCalls > 0 ? [{ text: `${r.client.name} — ${r.health.totalCalls} calls logged`, color: "var(--cyan)" }] : []))
+    .flatMap((r) =>
+      r.stats.totalCalls > 0 ? [{ text: `${r.client.name} — ${r.stats.totalCalls} calls logged`, color: "var(--cyan)" }] : []
+    )
     .slice(0, 10);
 
   const healthRows = [serviceHealth.vapi, serviceHealth.twilio, serviceHealth.n8n];

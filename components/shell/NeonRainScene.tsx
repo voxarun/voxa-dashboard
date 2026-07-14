@@ -200,14 +200,34 @@ export function NeonRainScene() {
         });
       }
 
-      t += 0.016;
-      raf = requestAnimationFrame(draw);
+      t += 0.032; // larger delta keeps the pulse speed ~the same at the 30fps cap
+    }
+
+    // Cap the loop at ~30fps. At the full display refresh this scene (grid dots,
+    // per-column gradients + glow, splash particles) was heavy enough to
+    // intermittently saturate the main thread while the page was still
+    // hydrating on load — the "sometimes loads, sometimes hangs" symptom.
+    // 30fps roughly halves the per-frame cost and reads the same here.
+    let lastFrame = 0;
+    const FRAME_MS = 1000 / 30;
+    function frame(nowMs: number) {
+      raf = requestAnimationFrame(frame);
+      if (nowMs - lastFrame < FRAME_MS) return;
+      lastFrame = nowMs;
+      draw();
     }
 
     init();
     const ro = new ResizeObserver(init);
     ro.observe(host);
-    draw();
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      draw(); // honour reduced-motion: one static frame, no animation loop
+    } else {
+      raf = requestAnimationFrame(frame);
+    }
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();

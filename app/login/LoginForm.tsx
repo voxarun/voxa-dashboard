@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+
+// Admin-only portal. When middleware turns away a non-admin (a client account,
+// or one with no profile) show the SAME generic message as a wrong password —
+// never reveal that the account exists or that it's "just" a client login.
+const GENERIC_LOGIN_ERROR = "Incorrect email or password";
+const BOUNCE_CODES = new Set(["not_admin", "no_profile"]);
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -11,6 +17,14 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const bounced = BOUNCE_CODES.has(useSearchParams().get("error") ?? "");
+
+  // A bounced sign-in still leaves a valid Supabase session (the password was
+  // correct — the account just isn't an admin). Clear it so they aren't quietly
+  // signed in to nothing.
+  useEffect(() => {
+    if (bounced) createClient().auth.signOut();
+  }, [bounced]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,12 +102,12 @@ export function LoginForm() {
         </button>
       </div>
 
-      {error && (
+      {(error || bounced) && (
         <div
           className="mb-4 rounded-xl border px-3.5 py-2.5 text-sm"
           style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.08)", color: "var(--red)" }}
         >
-          {error}
+          {error ?? GENERIC_LOGIN_ERROR}
         </div>
       )}
 
