@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const LS_KEY = "voxa-drivers";
 const DRIVERS_CHANGED_EVENT = "voxa-drivers-changed";
 
 const STATUS_OPTIONS = ["En Route", "Pickup", "Available"] as const;
 const STATUS_CLASS: Record<string, string> = { "En Route": "ca", Pickup: "cn", Available: "cd" };
+// One colour per status, shared by the moving map dot and the legend swatch.
+const STATUS_COLOR: Record<string, string> = {
+  "En Route": "#ffab00", // amber
+  Pickup: "#0094ff", // blue
+  Available: "#00e676", // green
+};
+const colorOf = (status: string) => STATUS_COLOR[status] ?? "#00e676";
 
 type Driver = {
   name: string;
@@ -101,6 +108,8 @@ export function FleetSection({ cityLabel }: { cityLabel: string }) {
   const [adding, setAdding] = useState(false);
   const [addDraft, setAddDraft] = useState<Driver>(BLANK_DRIVER);
 
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -112,6 +121,80 @@ export function FleetSection({ cityLabel }: { cityLabel: string }) {
       /* ignore malformed storage */
     }
   }, []);
+
+  // Moving dots — one per driver, drifting across the map and coloured by
+  // status. There's no real GPS in the schema, so the motion is simulated (each
+  // dot has its own gentle velocity and bounces off the edges), the same way the
+  // reference build does it. Runs client-side only, capped at ~30fps.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const host = canvas?.parentElement;
+    if (!canvas || !host) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let W = 0,
+      H = 0,
+      raf = 0,
+      last = 0;
+
+    // Seed a dot per driver. Deterministic-ish spread so they don't all stack.
+    const dots = list.map((d, i) => {
+      const gx = ((i * 0.37 + 0.15) % 1) * 0.8 + 0.1;
+      const gy = ((i * 0.61 + 0.35) % 1) * 0.7 + 0.15;
+      const ang = i * 2.4;
+      return { fx: gx, fy: gy, vx: Math.cos(ang) * 0.018, vy: Math.sin(ang) * 0.018, color: colorOf(d.status) };
+    });
+
+    function size() {
+      W = canvas!.width = host!.offsetWidth;
+      H = canvas!.height = host!.offsetHeight;
+    }
+
+    function frame(now: number) {
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return; // ~30fps
+      const dt = Math.min(2, (now - last) / 16.67);
+      last = now;
+
+      ctx!.clearRect(0, 0, W, H);
+      for (const p of dots) {
+        p.fx += p.vx * 0.006 * dt;
+        p.fy += p.vy * 0.006 * dt;
+        // Bounce inside the padded area.
+        if (p.fx < 0.06 || p.fx > 0.94) p.vx *= -1;
+        if (p.fy < 0.1 || p.fy > 0.9) p.vy *= -1;
+        p.fx = Math.max(0.06, Math.min(0.94, p.fx));
+        p.fy = Math.max(0.1, Math.min(0.9, p.fy));
+
+        const x = p.fx * W;
+        const y = p.fy * H;
+        // Soft outer ring
+        ctx!.beginPath();
+        ctx!.arc(x, y, 12, 0, Math.PI * 2);
+        ctx!.fillStyle = p.color + "22";
+        ctx!.fill();
+        // Glow + core
+        ctx!.beginPath();
+        ctx!.arc(x, y, 6, 0, Math.PI * 2);
+        ctx!.fillStyle = p.color;
+        ctx!.shadowColor = p.color;
+        ctx!.shadowBlur = 12;
+        ctx!.fill();
+        ctx!.shadowBlur = 0;
+      }
+    }
+
+    size();
+    const ro = new ResizeObserver(size);
+    ro.observe(host);
+    raf = requestAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+    // Re-seed when the roster or any status changes.
+  }, [list]);
 
   function persist(next: Driver[]) {
     setList(next);
@@ -184,6 +267,8 @@ export function FleetSection({ cityLabel }: { cityLabel: string }) {
             <div className="road-v" style={{ left: "22%" }} />
             <div className="road-v" style={{ left: "55%" }} />
             <div className="road-v" style={{ left: "78%" }} />
+            {/* One moving dot per driver, coloured by status. */}
+            <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
             {list.length === 0 && (
               <div
                 style={{
@@ -202,12 +287,9 @@ export function FleetSection({ cityLabel }: { cityLabel: string }) {
             <div className="map-label">{cityLabel.toUpperCase()}</div>
           </div>
           <div className="map-legend">
-            {list.slice(0, 3).map((d, i) => (
+            {list.map((d, i) => (
               <div key={i} className="ml-item">
-                <div
-                  className="ml-dot"
-                  style={{ background: i === 0 ? "var(--industry)" : i === 1 ? "var(--blue2)" : "var(--green)" }}
-                />
+                <div className="ml-dot" style={{ background: colorOf(d.status) }} />
                 {d.name} · {d.status}
               </div>
             ))}

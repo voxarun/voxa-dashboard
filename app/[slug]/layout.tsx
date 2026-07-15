@@ -39,6 +39,8 @@ export default async function ClientLayout({
         { icon: "📞", label: "Call Logs", disabled: true },
         { icon: isTaxi ? "🚗" : "🍽️", label: isTaxi ? "Fleet Live" : "Kitchen", href: isTaxi ? `/${slug}#fleet` : `/${slug}/chef` },
         { icon: "🛵", label: isTaxi ? "Drivers" : "Delivery", href: `/${slug}/driver` },
+        // Inventory: only for City Bites for now, and disabled ("Soon").
+        ...(slug === "city-bites" ? [{ icon: "📦", label: "Inventory", disabled: true }] : []),
       ],
     },
     {
