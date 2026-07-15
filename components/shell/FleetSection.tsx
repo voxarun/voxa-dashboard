@@ -158,9 +158,10 @@ export function FleetSection({ cityLabel }: { cityLabel: string }) {
       last = now;
 
       ctx!.clearRect(0, 0, W, H);
+      const SPEED = 0.05; // higher = faster drift across the map
       for (const p of dots) {
-        p.fx += p.vx * 0.006 * dt;
-        p.fy += p.vy * 0.006 * dt;
+        p.fx += p.vx * SPEED * dt;
+        p.fy += p.vy * SPEED * dt;
         // Bounce inside the padded area.
         if (p.fx < 0.06 || p.fx > 0.94) p.vx *= -1;
         if (p.fy < 0.1 || p.fy > 0.9) p.vy *= -1;
