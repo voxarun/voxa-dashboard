@@ -16,13 +16,8 @@ export function Sidebar({
       style={{ borderColor: "var(--b1)", background: "rgba(2,5,14,0.98)" }}
     >
       <div className="flex items-center gap-2.5 border-b px-4 py-4" style={{ borderColor: "var(--b1)" }}>
-        <div
-          className="h-7 w-7 flex-shrink-0"
-          style={{
-            background: "linear-gradient(135deg, #0050cc, #0094ff, #00e5ff)",
-            clipPath: "polygon(50% 0%, 100% 28%, 82% 100%, 50% 76%, 18% 100%, 0% 28%)",
-          }}
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icon-512.png" alt="Voxa" className="h-7 w-7 flex-shrink-0 object-contain" />
         <span className="text-[15px] font-extrabold tracking-tight">Voxa</span>
       </div>
 

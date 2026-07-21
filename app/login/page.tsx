@@ -18,13 +18,8 @@ export default function LoginPage() {
           style={{ borderColor: "var(--b1)", background: "var(--s1)" }}
         >
           <div className="mb-8 flex flex-col items-center gap-3 text-center">
-            <div
-              className="h-11 w-11 flex-shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #0050cc, #0094ff, #00e5ff)",
-                clipPath: "polygon(50% 0%, 100% 28%, 82% 100%, 50% 76%, 18% 100%, 0% 28%)",
-              }}
-            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon-512.png" alt="Voxa" className="h-11 w-11 flex-shrink-0 object-contain" />
             <span className="text-xl font-extrabold tracking-tight">Voxa Dashboard</span>
           </div>
           <Suspense fallback={<div style={{ height: 232 }} />}>

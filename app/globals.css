@@ -59,7 +59,15 @@ body { font-family: 'Inter', sans-serif; color: var(--t1); }
 /* ── SIDEBAR ── */
 .sb { width: 220px; max-width: 100%; flex-shrink: 0; background: rgba(2,5,14,0.98); border-right: 1px solid var(--b1); display: flex; flex-direction: column; height: 100vh; }
 .sb-logo { padding: 20px 18px 14px; border-bottom: 1px solid var(--b1); display: flex; align-items: center; gap: 9px; }
-.logo-mark { width: 30px; height: 30px; flex-shrink: 0; background: linear-gradient(135deg,#0050cc,#0094ff,#00e5ff); clip-path: polygon(50% 0%,100% 28%,82% 100%,50% 76%,18% 100%,0% 28%); }
+/* Brand mark. Was a CSS gradient + clip-path diamond; now the real logo asset,
+   so every place that renders .logo-mark (sidebar, mobile drawer, root page)
+   picks it up from one definition. */
+.logo-mark {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  background: url("/icon-512.png") center / contain no-repeat;
+}
 .logo-text { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
 .sb-client { margin: 10px 12px; padding: 9px 11px; background: var(--industry-bg); border: 1px solid var(--industry-border); border-radius: 9px; }
 .sbc-tag { font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--t3); margin-bottom: 3px; }

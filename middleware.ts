@@ -73,5 +73,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Skip Next internals, the API, and ANY static file (anything ending in an
+  // extension). Without the extension rule a request for /icon-512.png went
+  // through the auth check and was redirected to /login, so the browser got
+  // HTML where it expected a PNG and the logo rendered as a broken image.
+  matcher: ["/((?!api|_next/static|_next/image|.*\\.[\\w]+$).*)"],
 };
