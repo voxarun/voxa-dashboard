@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getClientBySlug, getRecentOrders, summarizeOrders } from "@/lib/dashboard-data";
+import { getClientBySlug, getClientStats } from "@/lib/dashboard-data";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Topbar } from "@/components/shell/Topbar";
@@ -18,8 +18,9 @@ export default async function ClientLayout({
   if (!client) notFound();
 
   const isTaxi = client.data_project === "taxi";
-  const { rows } = await getRecentOrders(client, 50);
-  const { newCount } = summarizeOrders(rows, client);
+  // Whole-table new count, so the sidebar Orders badge matches the "New" pill on
+  // the Orders screen (the 50-row sample under-reported it — 36 vs 43).
+  const { newCount } = await getClientStats(client);
 
   const sections: NavSection[] = [
     {

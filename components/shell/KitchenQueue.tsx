@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { setOrderStatus, completeOrder } from "@/app/[slug]/actions";
+import { agoLabel, elapsedLabel, waitPct, waitTone } from "@/lib/time";
 
 type Row = Record<string, unknown>;
 type Item = { name?: string; quantity?: number; modifiers?: unknown[] };
@@ -19,39 +20,6 @@ function parseItems(v: unknown): Item[] {
     }
   }
   return [];
-}
-
-function timeAgo(iso: unknown, nowMs: number | null): string {
-  if (!iso || nowMs === null) return "—";
-  const t = new Date(String(iso)).getTime();
-  if (isNaN(t)) return "—";
-  const min = Math.floor((nowMs - t) / 60000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  // Past a couple of days "336h ago" stops meaning anything — show the date.
-  if (d <= 2) return `${d}d ago`;
-  return new Date(String(iso)).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    timeZone: "Europe/London",
-  });
-}
-
-/** How long this customer has been waiting (mm:ss), against a 30-min target. */
-function waiting(iso: unknown, nowMs: number | null) {
-  if (!iso || nowMs === null) return { label: "—:—", pct: 0, tone: "var(--t3)" };
-  const t = new Date(String(iso)).getTime();
-  if (isNaN(t)) return { label: "—:—", pct: 0, tone: "var(--t3)" };
-  const sec = Math.max(0, Math.floor((nowMs - t) / 1000));
-  const mins = Math.floor(sec / 60);
-  return {
-    label: `${mins}:${String(sec % 60).padStart(2, "0")}`,
-    pct: Math.min(100, (mins / 30) * 100),
-    tone: mins < 10 ? "var(--green)" : mins < 20 ? "var(--amber)" : "var(--red)",
-  };
 }
 
 /**
@@ -129,7 +97,6 @@ export function KitchenQueue({
           const type = (isTaxi ? norm(r.booking_type) : norm(r.order_type)) || "unspecified";
           const instr = String(r.special_instructions ?? "").trim();
           const showInstr = instr && norm(instr) !== "none";
-          const w = waiting(r.created_at, nowMs);
           const st = statusOf(r);
           const busy = pendingId === id;
           const route = [r.pickup_address, r.destination_address]
@@ -141,7 +108,7 @@ export function KitchenQueue({
             <div key={id} className="kq-item">
               <div className="kq-top">
                 <span className="kq-id">#{id.slice(-6).toUpperCase()}</span>
-                <span className="kq-ago">{timeAgo(r.created_at, nowMs)}</span>
+                <span className="kq-ago">{agoLabel(r.created_at, nowMs)}</span>
               </div>
 
               {isTaxi ? (
@@ -171,10 +138,13 @@ export function KitchenQueue({
 
               <div className="kq-wait">
                 <div className="kq-bar">
-                  <div className="kq-bar-fill" style={{ width: `${w.pct}%`, background: w.tone }} />
+                  <div
+                    className="kq-bar-fill"
+                    style={{ width: `${waitPct(r.created_at, nowMs)}%`, background: waitTone(r.created_at, nowMs) }}
+                  />
                 </div>
-                <span className="kq-timer mn" style={{ color: w.tone }}>
-                  {w.label}
+                <span className="kq-timer mn" style={{ color: waitTone(r.created_at, nowMs) }}>
+                  {elapsedLabel(r.created_at, nowMs)}
                 </span>
               </div>
 

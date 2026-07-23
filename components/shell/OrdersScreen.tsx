@@ -92,41 +92,57 @@ export function OrdersScreen({
     return [
       ...base,
       ...mid,
-      { key: "done", label: isTaxi ? "Completed" : "Delivered", n: count((r) => DONE.includes(statusOf(r))) },
+      // "Completed" covers both delivered AND collected orders.
+      { key: "done", label: "Completed", n: count((r) => DONE.includes(statusOf(r))) },
       { key: "failed", label: "Failed", n: count((r) => FAILED.includes(statusOf(r))) },
     ];
   }, [rows, isTaxi]);
 
-  const typePills = useMemo(() => {
-    const typeOf = (r: Row) => (isTaxi ? norm(r.booking_type) : norm(r.order_type));
-    const count = (t: string) => rows.filter((r) => typeOf(r) === t).length;
-    const types = isTaxi
-      ? [
-          { key: "immediate", label: "Immediate" },
-          { key: "pre-booking", label: "Pre-Booking" },
-          { key: "airport", label: "Airport" },
-        ]
-      : [
-          { key: "delivery", label: "Delivery" },
-          { key: "collection", label: "Collection" },
-        ];
-    return [
+  // Type matchers use predicates, NOT exact string equality, so the pill counts
+  // and the filter match the KPI tiles exactly (e.g. Airport counts the
+  // is_airport flag too, Pre-Booking includes "scheduled"). booking_type is
+  // dirtier than order_type, which is why exact matching under-reported it.
+  const typeMatchers = useMemo(
+    () =>
+      isTaxi
+        ? [
+            { key: "immediate", label: "Immediate", test: (r: Row) => /immediate/i.test(norm(r.booking_type)) },
+            {
+              key: "pre",
+              label: "Pre-Booking",
+              test: (r: Row) => /pre[-\s]?book|schedul|advance/i.test(norm(r.booking_type)),
+            },
+            {
+              key: "airport",
+              label: "Airport",
+              test: (r: Row) => r.is_airport === true || /airport/i.test(norm(r.booking_type)),
+            },
+          ]
+        : [
+            { key: "delivery", label: "Delivery", test: (r: Row) => norm(r.order_type) === "delivery" },
+            { key: "collection", label: "Collection", test: (r: Row) => norm(r.order_type) === "collection" },
+          ],
+    [isTaxi]
+  );
+
+  const typePills = useMemo(
+    () => [
       { key: "all", label: "All Types", n: rows.length },
-      ...types.map((t) => ({ ...t, n: count(t.key) })),
-    ];
-  }, [rows, isTaxi]);
+      ...typeMatchers.map((m) => ({ key: m.key, label: m.label, n: rows.filter(m.test).length })),
+    ],
+    [rows, typeMatchers]
+  );
 
   const filtered = useMemo(() => {
+    const typeTest = type === "all" ? () => true : typeMatchers.find((m) => m.key === type)?.test ?? (() => true);
     return rows.filter((r) => {
       const s = statusOf(r);
-      const t = isTaxi ? norm(r.booking_type) : norm(r.order_type);
       const statusOk =
         status === "all" ||
         (status === "done" ? DONE.includes(s) : status === "failed" ? FAILED.includes(s) : s === status);
-      const typeOk = type === "all" || t === type;
-      return statusOk && typeOk;
+      return statusOk && typeTest(r);
     });
-  }, [rows, status, type, isTaxi]);
+  }, [rows, status, type, typeMatchers]);
 
   const word = isTaxi ? "bookings" : "orders";
 

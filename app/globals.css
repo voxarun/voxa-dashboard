@@ -285,6 +285,44 @@ body { font-family: 'Inter', sans-serif; color: var(--t1); }
 .cr { background: rgba(255,68,68,0.1); color: var(--red); }
 .cr::before { background: var(--red); }
 
+/* ── Kitchen board: three columns, orders move left → right ── */
+.kb-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.kb-col { background: var(--s1); border: 1px solid var(--b1); border-radius: 14px; overflow: hidden; }
+.kb-col-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 15px; border-bottom: 1px solid var(--b1); font-weight: 700;
+}
+.kb-col-title { font-size: 13px; }
+.kb-col-count {
+  font-size: 12px; font-weight: 800; min-width: 24px; text-align: center;
+  padding: 2px 8px; border-radius: 100px; background: var(--s2);
+}
+.kb-col.blue .kb-col-head { color: var(--blue2); box-shadow: inset 0 2px 0 rgba(0,148,255,0.5); }
+.kb-col.amber .kb-col-head { color: var(--amber); box-shadow: inset 0 2px 0 rgba(255,171,0,0.5); }
+.kb-col.green .kb-col-head { color: var(--green); box-shadow: inset 0 2px 0 rgba(0,230,118,0.5); }
+.kb-col-body { padding: 10px; display: flex; flex-direction: column; gap: 9px; max-height: 640px; overflow-y: auto; }
+.kb-empty { font-size: 11px; color: var(--t3); text-align: center; padding: 18px 0; }
+.kb-card { background: var(--s2); border: 1px solid var(--b1); border-radius: 10px; padding: 11px 12px; }
+.kb-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.kb-card-top .kq-ago { font-weight: 700; }
+.kb-btn {
+  width: 100%; margin-top: 9px; padding: 9px; border-radius: 8px; border: 1px solid var(--b2);
+  background: var(--s1); color: var(--t1); font-size: 12px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: all 0.12s;
+}
+.kb-btn:hover:not(:disabled) { border-color: var(--blue2); background: rgba(0,148,255,0.1); color: var(--blue2); }
+.kb-btn:disabled { opacity: 0.55; cursor: default; }
+/* Shown on a ready DELIVERY card — completion happens on the Delivery board. */
+.kb-handoff {
+  margin-top: 9px; padding: 8px; border-radius: 8px; text-align: center;
+  font-size: 11px; font-weight: 600; color: var(--blue2);
+  background: rgba(0,148,255,0.07); border: 1px dashed rgba(0,148,255,0.28);
+}
+@media (max-width: 820px) {
+  .kb-board { grid-template-columns: 1fr; }
+  .kb-col-body { max-height: 320px; }
+}
+
 /* ── Kitchen / Dispatch view stat cards ── */
 .ks-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
 .ks-card { border-radius: 14px; padding: 22px 24px; border: 1px solid var(--b1); }

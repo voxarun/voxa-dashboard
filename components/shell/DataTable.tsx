@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { setOrderStatus } from "@/app/[slug]/actions";
+import { agoLabel, elapsedLabel, waitTone } from "@/lib/time";
 
 type Row = Record<string, unknown>;
 type Item = { name?: string; quantity?: number; modifiers?: unknown[]; unitPrice?: number };
@@ -69,7 +70,18 @@ function deriveTypeClass(t: string): string {
 /** Values arrive from the voice pipeline with stray whitespace/newlines
  *  ("collection\n\n") and as empty strings rather than null. */
 const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
-const titleCase = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+// Pretty-print a raw booking_type/order_type: "safety_emergency" -> "Safety
+// Emergency", "pre-booking" -> "Pre Booking". Underscores/hyphens become spaces
+// and each word is capitalised.
+const titleCase = (s: string) =>
+  s
+    ? s
+        .replace(/[_-]+/g, " ")
+        .split(" ")
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ")
+    : s;
 
 /** Colour the status chip by what the status MEANS. It was hardcoded to one
  *  class, so a brand-new unactioned order looked identical to a delivered one. */
@@ -149,6 +161,14 @@ export function DataTable({
   const [saving, startSave] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [rowErr, setRowErr] = useState<Record<string, string>>({});
+  // Elapsed time — computed after mount (never during render) to avoid a
+  // hydration mismatch, refreshed each minute.
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  useEffect(() => {
+    setNowMs(Date.now());
+    const t = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, []);
   // Optimistic status so the chip/buttons update the moment you click.
   const [localStatus, setLocalStatus] = useState<Record<string, string>>({});
 
@@ -388,16 +408,29 @@ export function DataTable({
                   </div>
 
                   <div>
-                    <div className="rd-h">Payment</div>
-                    <div className="rd-line">{norm(r.payment_method) ? String(r.payment_method) : "Not recorded"}</div>
-                    {r.call_id ? (
-                      <div className="rd-line mn" style={{ color: "var(--t3)", fontSize: 10 }}>
-                        Call: {String(r.call_id).slice(0, 14)}…
+                    <div className="rd-h">Timing</div>
+                    <div className="rd-line">
+                      Placed <strong>{agoLabel(r.created_at, nowMs)}</strong>
+                    </div>
+                    {/* For anything not yet completed, how long it has been
+                        waiting — turns amber/red the longer it sits. */}
+                    {!["delivered", "completed", "collected", "done", "cancelled", "failed"].includes(norm(status)) && (
+                      <div className="rd-line" style={{ color: waitTone(r.created_at, nowMs), fontWeight: 700 }}>
+                        ⏱ Waiting {elapsedLabel(r.created_at, nowMs)}
                       </div>
-                    ) : null}
+                    )}
+                    <div className="rd-h" style={{ marginTop: 12 }}>
+                      Payment
+                    </div>
+                    <div className="rd-line">{norm(r.payment_method) ? String(r.payment_method) : "Not recorded"}</div>
                     {norm(r.customer_phone) || norm(r.phone_number) ? (
                       <div className="rd-line" style={{ color: "var(--t3)", fontSize: 11 }}>
                         {String(r.customer_phone ?? r.phone_number)}
+                      </div>
+                    ) : null}
+                    {r.call_id ? (
+                      <div className="rd-line mn" style={{ color: "var(--t3)", fontSize: 10 }}>
+                        Call: {String(r.call_id).slice(0, 14)}…
                       </div>
                     ) : null}
                   </div>

@@ -2,17 +2,11 @@ import { getAllClients, getRecentOrders, getCallHealth, getClientStats, summariz
 import { getAllServiceHealth } from "@/lib/monitoring";
 import { getDataProjectPublicConfig } from "@/lib/data-projects";
 import { AdminRealtimeWrapper } from "@/components/shell/AdminRealtimeWrapper";
+import { agoLabel } from "@/lib/time";
 
-function timeAgo(iso: string | null): string {
-  if (!iso) return "—";
-  const d = new Date(iso).getTime();
-  const diffMin = Math.round((Date.now() - d) / 60000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffH = Math.round(diffMin / 60);
-  if (diffH < 24) return `${diffH}h ago`;
-  return `${Math.round(diffH / 24)}d ago`;
-}
+// Server component renders once, so Date.now() is safe here. Shared formatter
+// so "ago" (incl. days) reads the same across the app.
+const timeAgo = (iso: string | null) => agoLabel(iso, Date.now());
 
 export default async function AdminOverviewPage() {
   const clients = await getAllClients();

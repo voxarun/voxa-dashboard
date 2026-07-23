@@ -110,6 +110,11 @@ export function DeliveryScreen({
   const readyCount = active.filter((r) => statusOf(r) === "ready").length;
   const preparingCount = active.filter((r) => ["new", "cooking"].includes(statusOf(r))).length;
 
+  // The board LIST is for the driver — only orders the kitchen has marked
+  // "ready" should appear here, i.e. ones that are actually ready to go out.
+  // Orders still being prepared stay in the "Being prepared" counter only.
+  const toDeliver = active.filter((r) => statusOf(r) === "ready");
+
   function markDelivered(id: string) {
     setRowErr((e) => ({ ...e, [id]: "" }));
     setLocalStatus((s) => ({ ...s, [id]: "delivered" }));
@@ -138,7 +143,9 @@ export function DeliveryScreen({
             Live
           </span>
         </div>
-        <div className="os-sub">{active.length} active deliveries</div>
+        <div className="os-sub">
+          {readyCount} ready to go out · {preparingCount} still being prepared
+        </div>
       </div>
 
       <div className="ks-grid ks-grid--2">
@@ -155,18 +162,22 @@ export function DeliveryScreen({
       <div className="card">
         <div className="ch">
           <div>
-            <div className="ct">🚚 Delivery Dashboard</div>
-            <div className="cs">{active.length} active deliveries</div>
+            <div className="ct">🚚 Ready to deliver</div>
+            <div className="cs">Orders the kitchen has marked ready</div>
           </div>
-          <span className="badge b">{active.length} To go</span>
+          <span className="badge b">{toDeliver.length} To go</span>
         </div>
 
         <div className="kq-list" style={{ maxHeight: 620 }}>
-          {active.length === 0 && (
-            <div style={{ fontSize: 12, color: "var(--t3)" }}>No deliveries waiting — all caught up.</div>
+          {toDeliver.length === 0 && (
+            <div style={{ fontSize: 12, color: "var(--t3)" }}>
+              {preparingCount > 0
+                ? `Nothing ready to go out yet — ${preparingCount} still being prepared in the kitchen.`
+                : "No deliveries waiting — all caught up."}
+            </div>
           )}
 
-          {active.map((r) => {
+          {toDeliver.map((r) => {
             const id = String(r.id);
             const name = String(r.customer_name ?? "").trim() || "Customer";
             const addr = norm(r.delivery_address) ? String(r.delivery_address).trim() : "";

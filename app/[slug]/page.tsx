@@ -20,16 +20,6 @@ import { CallFeed } from "@/components/shell/CallFeed";
 import { getDataProjectPublicConfig } from "@/lib/data-projects";
 import { notFound } from "next/navigation";
 
-function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const diffMin = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffH = Math.round(diffMin / 60);
-  if (diffH < 24) return `${diffH}h ago`;
-  return `${Math.round(diffH / 24)}d ago`;
-}
-
 export default async function ClientOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const client = await getClientBySlug(slug);
@@ -47,25 +37,13 @@ export default async function ClientOverviewPage({ params }: { params: Promise<{
 
   const tickerItems = rows.slice(0, 10).map((r) => {
     const name = String(r.customer_name ?? "").trim() || "Customer";
-    const route = isTaxi
-      ? [r.pickup_address, r.destination_address].filter(Boolean).join(" → ") || "Address not provided"
-      : String(r.order_type ?? "order");
-    return `• ${name} — ${route}`;
+    // Normalise so "collection\n\n" doesn't leak newlines into the ticker.
+    const descriptor = isTaxi
+      ? [r.pickup_address, r.destination_address].map((v) => String(v ?? "").trim()).filter(Boolean).join(" → ") ||
+        "Address not provided"
+      : String(r.order_type ?? "").trim().toLowerCase() || "order";
+    return `• ${name} — ${descriptor}`;
   });
-
-  // Real per-client activity feed for the Voxa Brain running panel —
-  // same source of truth as the orders table, just newest-first + capped.
-  const activity = [...rows]
-    .filter((r) => r.created_at)
-    .sort((a, b) => new Date(String(b.created_at)).getTime() - new Date(String(a.created_at)).getTime())
-    .slice(0, 6)
-    .map((r) => ({
-      client: client.name,
-      what: `${isTaxi ? "Booking" : "Order"} ${r.status === "new" ? "received" : String(r.status ?? "updated")}`,
-      how: String(r.customer_name ?? "").trim() || "customer",
-      when: timeAgo(r.created_at as string | null),
-      color: r.status === "new" ? "var(--amber)" : "var(--green)",
-    }));
 
   // Every tile below is computed from a real column via getClientStats() — whole
   // table, not the 50-row recent sample (which under-reported every total).
