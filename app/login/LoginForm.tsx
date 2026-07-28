@@ -69,9 +69,14 @@ export function LoginForm() {
         style={{ borderColor: "var(--b1)", background: "var(--s2)", color: "var(--t1)" }}
       />
 
-      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
-        Password
-      </label>
+      <div className="mb-1.5 flex items-center justify-between">
+        <label className="block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
+          Password
+        </label>
+        <a href="/forgot-password" className="text-[11px] font-semibold" style={{ color: "var(--blue2)" }}>
+          Forgot password?
+        </a>
+      </div>
       <div className="relative mb-5">
         <input
           type={showPassword ? "text" : "password"}
