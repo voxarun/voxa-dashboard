@@ -1,17 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function readLinkError(searchParamsError: string | null): string | null {
+  if (typeof window !== "undefined" && window.location.hash) {
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    const errorCode = hashParams.get("error_code");
+    const errorDescription = hashParams.get("error_description");
+    if (errorCode === "otp_expired") {
+      return "That reset link has expired or was already used. Enter your email below to get a new one.";
+    }
+    if (errorDescription) {
+      return errorDescription.replace(/\+/g, " ");
+    }
+  }
+  if (searchParamsError === "invalid_link") {
+    return "That reset link is invalid or has expired. Enter your email below to get a new one.";
+  }
+  return null;
+}
+
 export function ForgotPasswordForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    setLinkError(readLinkError(searchParams.get("error")));
+    if (window.location.hash || searchParams.get("error")) {
+      window.history.replaceState(null, "", "/forgot-password");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setLinkError(null);
     setLoading(true);
 
     const supabase = createClient();
@@ -21,11 +54,7 @@ export function ForgotPasswordForm() {
 
     setLoading(false);
 
-    // Always show the same success state regardless of whether the email
-    // exists — same reasoning as the login form's generic error: don't leak
-    // which accounts exist.
     if (error) {
-      // Only surface something like a rate limit; never "no such user".
       setError(error.message.toLowerCase().includes("rate") ? error.message : null);
     }
     setSent(true);
@@ -42,7 +71,7 @@ export function ForgotPasswordForm() {
         </h1>
         <p className="text-sm" style={{ color: "var(--t2)" }}>
           If an account exists for <span style={{ color: "var(--t1)" }}>{email}</span>, a
-          password reset link is on its way.
+          password reset link is on its way. It expires in 1 hour and can only be used once.
         </p>
         {error && (
           <div
@@ -75,6 +104,15 @@ export function ForgotPasswordForm() {
       <p className="mb-6 text-center text-sm" style={{ color: "var(--t2)" }}>
         Enter your admin email and we&apos;ll send a reset link.
       </p>
+
+      {linkError && (
+        <div
+          className="mb-5 rounded-xl border px-3.5 py-2.5 text-left text-sm"
+          style={{ borderColor: "rgba(255,68,68,0.3)", background: "rgba(255,68,68,0.08)", color: "var(--red)" }}
+        >
+          {linkError}
+        </div>
+      )}
 
       <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--t3)" }}>
         Email
