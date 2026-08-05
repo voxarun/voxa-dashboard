@@ -1,6 +1,7 @@
 import { getAllClients, getRecentOrders, getCallHealth, getClientStats, summarizeOrders } from "@/lib/dashboard-data";
 import { getAllServiceHealth } from "@/lib/monitoring";
 import { getDataProjectPublicConfig } from "@/lib/data-projects";
+import type { DataProject } from "@/lib/data-projects";
 import { AdminRealtimeWrapper } from "@/components/shell/AdminRealtimeWrapper";
 import { agoLabel } from "@/lib/time";
 
@@ -70,18 +71,18 @@ export default async function AdminOverviewPage() {
   // Orders count per data project. getRecentOrders isn't client-filtered, so
   // every client in a project shares the same recent-orders count; capture it
   // per project so a new INSERT can bump the right clients' cells live.
-  const ordersByProject: Record<"takeaway" | "taxi", number> = { takeaway: 0, taxi: 0 };
+  const ordersByProject: Record<DataProject, number> = { takeaway: 0, taxi: 0, pharmacy: 0 };
   for (const r of rows) ordersByProject[r.client.data_project] = r.kpi.total;
 
   // How many clients belong to each project — the admin "Calls Logged" total is
   // a sum of each client's recent call count, so one new call in a project adds
   // (number of clients in that project) to the total on a refresh.
-  const clientsByProject: Record<"takeaway" | "taxi", number> = { takeaway: 0, taxi: 0 };
+  const clientsByProject: Record<DataProject, number> = { takeaway: 0, taxi: 0, pharmacy: 0 };
   for (const c of clients) clientsByProject[c.data_project] += 1;
 
   // A representative client name per project to label a new order in the feed
   // (orders aren't tied to a single client, mirroring the server labelling).
-  const representativeClientByProject: Record<"takeaway" | "taxi", string> = { takeaway: "", taxi: "" };
+  const representativeClientByProject: Record<DataProject, string> = { takeaway: "", taxi: "", pharmacy: "" };
   for (const c of clients) {
     if (!representativeClientByProject[c.data_project]) representativeClientByProject[c.data_project] = c.name;
   }
@@ -99,6 +100,7 @@ export default async function AdminOverviewPage() {
 
   const rtTakeaway = getDataProjectPublicConfig("takeaway");
   const rtTaxi = getDataProjectPublicConfig("taxi");
+  const rtPharmacy = getDataProjectPublicConfig("pharmacy");
 
   return (
     <AdminRealtimeWrapper
@@ -117,6 +119,7 @@ export default async function AdminOverviewPage() {
       realtime={{
         takeaway: { url: rtTakeaway.url, anonKey: rtTakeaway.anonKey, ordersTable: rtTakeaway.table },
         taxi: { url: rtTaxi.url, anonKey: rtTaxi.anonKey, ordersTable: rtTaxi.table },
+        pharmacy: { url: rtPharmacy.url, anonKey: rtPharmacy.anonKey, ordersTable: rtPharmacy.table },
       }}
     />
   );
