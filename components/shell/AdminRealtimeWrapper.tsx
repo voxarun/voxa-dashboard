@@ -7,7 +7,7 @@ import { KpiGrid, type KpiTile } from "./KpiGrid";
 import { VoxaBrain } from "./VoxaBrain";
 import { AdminHeroScene } from "./AdminHeroScene";
 
-type Project = "takeaway" | "taxi";
+type Project = "takeaway" | "taxi" | "pharmacy";
 
 type ActivityItem = { client: string; what: string; how: string; when: string; color: string };
 type TickerItem = { text: string; color: string };
