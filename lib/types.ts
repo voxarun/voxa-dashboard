@@ -14,7 +14,7 @@ export type Client = {
   name: string;
   tagline: string;
   industry: string;
-  data_project: "takeaway" | "taxi";
+  data_project: "takeaway" | "taxi" | "pharmacy";
   online_ordering_enabled: boolean;
   is_open: boolean;
   plan_tier: "basic" | "pro" | "empire";
