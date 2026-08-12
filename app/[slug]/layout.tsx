@@ -27,9 +27,8 @@ export default async function ClientLayout({
       title: "Overview",
       items: [
         { icon: "⚡", label: "Command Centre", href: `/${slug}#top`, active: true },
-        { icon: "📊", label: "Analytics", disabled: true },
-        // Disabled on request — these were hash links into the overview, not real pages.
-        { icon: "💰", label: isTaxi ? "Booking Mix" : "Revenue", disabled: true },
+        { icon: "📊", label: "Analytics", href: `/${slug}/analytics` },
+        { icon: "💰", label: isTaxi ? "Booking Mix" : "Revenue", href: `/${slug}/revenue` },
       ],
     },
     {
@@ -37,7 +36,7 @@ export default async function ClientLayout({
       items: [
         // Real page now, not a hash link into the overview table.
         { icon: "📋", label: isTaxi ? "Bookings" : "Orders", href: `/${slug}/orders`, badge: newCount ? String(newCount) : undefined },
-        { icon: "📞", label: "Call Logs", disabled: true },
+        { icon: "📞", label: "Call Logs", href: `/${slug}/calls` },
         { icon: isTaxi ? "🚗" : "🍽️", label: isTaxi ? "Fleet Live" : "Kitchen", href: isTaxi ? `/${slug}#fleet` : `/${slug}/chef` },
         { icon: "🛵", label: isTaxi ? "Drivers" : "Delivery", href: `/${slug}/driver` },
         // Inventory: only for City Bites for now, and disabled ("Soon").
