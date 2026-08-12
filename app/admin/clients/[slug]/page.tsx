@@ -18,6 +18,10 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
   const failedOrErrored = rows.filter((r) => ["failed", "error", "cancelled"].includes(String(r.status ?? "")));
   const n8nConfigured = Boolean(client.n8n_webhook_url && client.n8n_webhook_url.trim());
 
+  const clientSince = client.created_at
+    ? new Date(client.created_at).toLocaleDateString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short", year: "numeric" })
+    : "—";
+
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-6 flex items-center justify-between">
@@ -27,6 +31,34 @@ export default async function ManageClientPage({ params }: { params: Promise<{ s
           </Link>
           <h1 style={{ fontSize: 20, fontWeight: 800, marginTop: 4 }}>{client.name}</h1>
           <p style={{ fontSize: 12, color: "var(--t2)" }}>{client.tagline}</p>
+        </div>
+        {client.slug?.trim() ? (
+          <a className="btn" href={`/${client.slug}`} style={{ textDecoration: "none" }}>
+            View live dashboard →
+          </a>
+        ) : null}
+      </div>
+
+      {/* Record header — the "at a glance" facts an internal record page needs:
+          plan, industry, open/closed, and how long they've been a client. */}
+      <div className="kpi-grid" style={{ marginBottom: 20 }}>
+        <div className="card kpi">
+          <div className="cs">Plan</div>
+          <div className="ct" style={{ fontSize: 16, textTransform: "uppercase" }}>{client.plan_tier}</div>
+        </div>
+        <div className="card kpi">
+          <div className="cs">Industry</div>
+          <div className="ct" style={{ fontSize: 16, textTransform: "capitalize" }}>{client.industry || client.data_project}</div>
+        </div>
+        <div className="card kpi">
+          <div className="cs">Status</div>
+          <div className="ct" style={{ fontSize: 16 }}>
+            <span className={`chip ${client.is_open ? "cd" : "ca"}`}>{client.is_open ? "Open" : "Closed"}</span>
+          </div>
+        </div>
+        <div className="card kpi">
+          <div className="cs">Client since</div>
+          <div className="ct" style={{ fontSize: 16 }}>{clientSince}</div>
         </div>
       </div>
 
