@@ -21,7 +21,7 @@ const sections: NavSection[] = [
   {
     title: "Platform",
     items: [
-      { icon: "🩺", label: "System Health", href: "/admin#health" },
+      { icon: "🩺", label: "System Health", href: "/admin/monitoring" },
       { icon: "📈", label: "Billing", disabled: true },
       { icon: "🚨", label: "Alerts", disabled: true },
     ],
