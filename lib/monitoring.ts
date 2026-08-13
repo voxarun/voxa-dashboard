@@ -77,22 +77,23 @@ export async function getN8nHealth(): Promise<ServiceHealth & { recentFailures: 
     return { service: "n8n", configured: false, healthy: false, headline: "Not connected", detail: "N8N_API_KEY / N8N_BASE_URL missing", recentFailures: 0 };
   }
   try {
-    const res = await fetch(`${base.replace(/\/$/, "")}/api/v1/executions?status=error&limit=20`, {
+    const res = await fetch(`${base.replace(/\/$/, "")}/api/v1/executions?status=error&limit=50`, {
       headers: { "X-N8N-API-KEY": key },
       cache: "no-store",
     });
     if (!res.ok) {
       return { service: "n8n", configured: true, healthy: false, headline: "API error", detail: `n8n responded ${res.status}`, recentFailures: 0 };
     }
-    const data = (await res.json()) as { data?: unknown[] };
-    const failures = data.data?.length ?? 0;
-    return {
+    const data = (await res.json()) as { data?: Array<{ startedAt?: string; stoppedAt?: string }> };
+        const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+        const failures = (data.data ?? []).filter((e) => { const ts = e.stoppedAt ?? e.startedAt; return ts ? new Date(ts).getTime() >= cutoff : false; }).length;
+   return {
       service: "n8n",
       configured: true,
       healthy: failures === 0,
-      headline: failures === 0 ? "No failures" : `${failures} failed run(s)`,
-      detail: "Recent workflow executions",
-      recentFailures: failures,
+      headline: failures === 0 ? "No failures" : `${failures} failed run(s) in last 24h`,
+           detail: "Recent workflow executions (last 24h)",
+     recentFailures: failures,
     };
   } catch (e) {
     return { service: "n8n", configured: true, healthy: false, headline: "Unreachable", detail: String(e), recentFailures: 0 };
